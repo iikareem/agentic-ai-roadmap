@@ -1,4 +1,4 @@
-# 🧠 Agentic AI Roadmap for Backend Engineers
+# Agentic AI Roadmap for Backend Engineers
 
 > A structured, topic-by-topic knowledge base for backend engineers leveling up into **AI, LLM, RAG, and Agentic systems** engineering.
 
@@ -8,7 +8,7 @@ Each topic is a standalone markdown note following a consistent schema, cross-li
 
 ---
 
-## 📌 Why this exists
+## Why this exists
 
 Modern backend engineering has quietly expanded. It's no longer just APIs, databases, and infra — a backend engineer today is expected to reason about:
 
@@ -23,7 +23,7 @@ This repo breaks that entire space into **atomic, well-structured topics** — e
 
 ---
 
-## 🗂️ Structure
+## Structure
 
 ```
 agentic-ai-roadmap/
@@ -57,7 +57,7 @@ Every folder maps to one pillar of the roadmap. Every file inside it is one topi
 
 ---
 
-## 📄 Topic template
+## Topic template
 
 Every topic note follows this schema:
 
@@ -81,7 +81,7 @@ See [`_template.md`](./_template.md) for the raw schema used to generate every n
 
 ---
 
-## 🧭 How to use this repo
+## How to use this repo
 
 1. **Start at [`00-Roadmap-Overview.md`](./00-Roadmap-Overview.md)** — the full pillar-by-pillar map with reasoning on how topics connect.
 2. **Follow the numbered order within each folder** — topics are sequenced so each one builds on the last (`Prev` / `Next` links at the top of every note).
@@ -95,7 +95,7 @@ git clone https://github.com/iikareem/agentic-ai-roadmap.git
 
 ---
 
-## 🏗️ The pillars
+## The pillars
 
 | # | Pillar | What it covers |
 | --- | --- | --- |
@@ -116,21 +116,21 @@ git clone https://github.com/iikareem/agentic-ai-roadmap.git
 
 ---
 
-## ✅ Status
+## Status
 
 This is a living document — topics are filled in progressively as they're studied and battle-tested against real projects, not written all at once from theory.
 
 | Status | Meaning |
 | --- | --- |
-| 🟩 Done | Fully documented, built something with it |
-| 🟨 In progress | Notes drafted, not yet applied in a project |
-| ⬜ Not started | Placeholder only |
+| Done | Fully documented, built something with it |
+| In progress | Notes drafted, not yet applied in a project |
+| Not started | Placeholder only |
 
 *(Tip: track this with a table or GitHub Projects board per topic.)*
 
 ---
 
-## 🤝 Contributing
+## Contributing
 
 This started as a personal roadmap, but PRs are welcome if you want to:
 
@@ -143,12 +143,12 @@ Please keep the existing note schema for consistency.
 
 ---
 
-## 📜 License
+## License
 
 [MIT](./LICENSE) — use, fork, and adapt freely.
 
 ---
 
-## 🙋 Why this will be public
+## Why this will be public
 
-**Private for now** while topics are still being filled in. Sharing eventually so other backend engineers making the same transition don't have to build the map from scratch. If it helps you later, a ⭐ is appreciated — and feel free to open an issue if you disagree with how a topic is framed.
+**Private for now** while topics are still being filled in. Sharing eventually so other backend engineers making the same transition don't have to build the map from scratch. If it helps you later, a star is appreciated — and feel free to open an issue if you disagree with how a topic is framed.
