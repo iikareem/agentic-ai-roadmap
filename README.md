@@ -1,19 +1,10 @@
 # Agentic AI Roadmap for Backend Engineers
 
-**Kareem Ashraf** · Draft **v0.1.0** · September 2026 · [License](./LICENSE)
+> A structured, topic-by-topic knowledge base for backend engineers leveling up into **AI, LLM, RAG, and Agentic systems** engineering.
 
-> A structured, topic-by-topic knowledge base for backend engineers leveling up into **AI, LLM, RAG, and agentic systems** engineering.
+This repo is not a tutorial and not a course — it's a **personal (and shareable) map** of everything a modern backend engineer needs to understand to design, build, and reason about AI-powered systems: from LLM fundamentals to RAG, agents, context engineering, observability, and production-grade optimization.
 
-This repository is not a tutorial and not a course. It is a **personal (and eventually shareable) map** of what a modern backend engineer needs to understand to design, build, and reason about AI-powered systems — from LLM fundamentals through RAG, agents, context engineering, evaluation, observability, and production optimization.
-
-Each topic is a standalone Markdown note with a consistent schema, cross-linked into a navigable graph. Built with [Obsidian](https://obsidian.md) in mind; plain Markdown everywhere, so it works in any editor and on GitHub as-is.
-
-| | |
-|---|---|
-| **Format** | Markdown notes (Obsidian-compatible wikilinks) |
-| **Status** | Private draft — living curriculum, incomplete on purpose |
-| **Audience** | Backend engineers shipping production systems |
-| **Scope** | 14 pillars · ~95 topic stubs · filled as studied and built |
+Each topic is a standalone markdown note following a consistent schema, cross-linked into a navigable knowledge graph (built with [Obsidian](https://obsidian.md) in mind, but plain markdown everywhere — works in any editor or on GitHub as-is).
 
 ### In this README
 
@@ -25,9 +16,8 @@ Each topic is a standalone Markdown note with a consistent schema, cross-linked 
 6. [Topic template](#topic-template)
 7. [How to use this repo](#how-to-use-this-repo)
 8. [The pillars](#the-pillars)
-9. [Status](#status)
-10. [Contributing](#contributing)
-11. [License](#license)
+9. [Contributing](#contributing)
+10. [License](#license)
 
 ---
 
@@ -181,20 +171,6 @@ cd agentic-ai-roadmap
 | 12 | [Infrastructure & Deployment](./12%20-%20Infrastructure%20%26%20Deployment/) | Serving models, API gateways, scaling, streaming |
 | 13 | [Data Pipelines](./13%20-%20Data%20Pipelines%20for%20AI%20Systems/) | Ingestion, preprocessing, incremental updates, versioning |
 | 14 | [System Design for AI Apps](./14%20-%20System%20Design%20for%20AI-Native%20Applications/) | Architecture patterns, non-determinism, cost-aware design |
-
----
-
-## Status
-
-This is a living document. Topics are filled in as they are studied and tested against real projects — not written all at once from theory.
-
-| Frontmatter `status` | Meaning |
-| --- | --- |
-| `done` | Fully documented; built something with it |
-| `in-progress` | Notes drafted; not yet applied in a project |
-| `not-started` | Placeholder only |
-
-Most topics start as `not-started` stubs with a seeded **Summary**. That is intentional.
 
 ---
 
