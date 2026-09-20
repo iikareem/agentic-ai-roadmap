@@ -63,19 +63,18 @@ Every topic note follows this schema:
 
 | Section | Purpose |
 | --- | --- |
-| **Goal** | One-line definition of what this topic covers and why it matters |
-| **Prerequisites** | Topics you should understand first |
-| **Core idea** | One-paragraph plain-language explanation |
-| **Mental model** | Diagram / analogy / sketch of how it works |
-| **How it works** | Deep dive: key concepts, step-by-step, examples |
-| **Tradeoffs & when to use** | Comparison table + when to prefer this vs alternatives |
-| **Cost / latency impact** | How this choice affects production cost and speed |
-| **Failure modes** | What breaks, and how it breaks silently |
-| **Checklist** | Self-check before moving on |
+| **Type** | Concept / Comparison / Technique / Hub |
+| **Summary** | 2–4 sentences — what to walk away knowing |
+| **Why it matters** | Where it shows up; what breaks or gets expensive without it |
+| **Explanation** | Free-writing main body — structure grows with the topic |
+| **Examples / Code / Config** | Optional snippets, prompts, configs |
+| **Comparison** | Optional table — delete if not a comparison-type note |
+| **When to use / When to avoid** | Practical decision guide |
+| **Cost, latency, or risk notes** | Optional production impact |
+| **Failure modes / gotchas** | What goes wrong, especially silently |
 | **Related topics** | Wikilinks to connected notes |
 | **Resources** | Papers, docs, blog posts worth reading |
-| **Questions to revisit** | Open threads to come back to after building something |
-| **Notes** | Free-form running notes |
+| **My notes / open questions** | Freeform running thoughts |
 
 See [`_template.md`](./_template.md) for the raw schema used to generate every note.
 

@@ -1,127 +1,86 @@
----
-status: not-started   # not-started | in-progress | done
-chapter: <Chapter Title>
-topic: <NN>
-tags:
-  - agentic-ai
-  - ch/<NN>
----
+# 00 - [Topic Name]
 
-# NN - Topic Title
-
-> **Navigation:** [[00-Roadmap-Overview]] → [[Chapter Title]] → Topic Title
-> **Prev:** [[prev]] | **Next:** [[next]]
+> **Navigation:** [[Agentic AI Roadmap]] → [[Pillar Name]] → 00 - [Topic Name]
+> **Type:** Concept / Comparison / Technique / Hub  <!-- pick one, delete rest -->
+> **Prev:** — | **Next:** [[Next Topic]]
 
 ---
 
-## Goal
+## Summary
 
-One-line definition of what this topic covers and why it matters.
-
----
-
-## Prerequisites
-
-- [[]]
-
----
-
-## Core idea
-
-<!-- Write the one-paragraph explanation here. -->
+<!-- 2–4 sentences. If someone reads only this, what should they walk away knowing? -->
 
 
 
-## Mental model
+## Why it matters
 
-<!-- Diagram, analogy, or step-by-step picture of how it works. -->
-
-```
-(sketch / ascii / mermaid later)
-```
+<!-- Where does this show up in real systems? What breaks or gets expensive if you don't understand it? -->
 
 
 
-## How it works
+## Explanation
 
-<!-- Deepen the explanation. Use headings, lists, and examples. -->
+<!--
+This is the main free-writing space. Write as much or as little as the topic needs.
+No forced structure here — use sub-headings naturally as the explanation grows.
+Good things to include, in whatever order makes sense for THIS topic:
+  - How it works
+  - Key terms/definitions
+  - How it fits with other topics
+  - Diagrams, analogies, ascii/mermaid sketches
+  - Options being compared (if this is a Comparison-type note)
+  - Techniques/approaches (if this is a Technique-type note)
+-->
 
-### Key concepts
 
-- 
 
-### Step by step
 
-1. 
+## Examples / Code / Config
 
-### Example
+<!-- Optional. Real snippets, pseudo-code, prompts, configs — whatever grounds the idea. -->
 
 ```text
-# paste prompts, configs, or pseudo-code here
+
 ```
 
+## Comparison (if relevant)
 
+<!-- Delete this whole section if not a comparison-type topic -->
 
-## Tradeoffs & when to use
+| Option | Best for | Avoid when | Notes |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
-| Situation | Prefer this | Prefer something else |
-| --- | --- | --- |
-|  |  |  |
+## When to use / When to avoid
 
 **Use when:**
-
 - 
 
-**Avoid when:**
-
+**Avoid / reconsider when:**
 - 
 
+## Cost, latency, or risk notes
 
-
-## Cost / latency impact
-
-<!-- How this choice affects production cost and speed. -->
-
-- 
+<!-- Optional but valuable for anything touching production. Delete if not relevant. -->
 
 
 
-## Failure modes
+## Failure modes / gotchas
+
+<!-- What goes wrong, especially silently -->
 
 - 
-
-
-
-## Checklist
-
-- [ ] I can explain this in plain language
-- [ ] I know the main tradeoffs
-- [ ] I know the cost / latency impact
-- [ ] I know what breaks in production
-- [ ] I linked related topics below
-
-
 
 ## Related topics
 
 - [[]]
 - [[]]
 
-
-
 ## Resources
 
 - 
 
+## My notes / open questions
 
-
-## Questions to revisit
-
-- 
-
-
-
-## Notes
-
-<!-- Free-form markdown. Keep studying notes here as you go. -->
+<!-- Freeform. Running thoughts, things to revisit after building something, disagreements with the source material, etc. -->
 

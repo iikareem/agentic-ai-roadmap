@@ -9,119 +9,86 @@ tags:
 
 # 04 - Tool Use & Function Calling
 
-> **Navigation:** [[00-Roadmap-Overview]] → [[Agentic Systems]] → 04 - Tool Use & Function Calling
+> **Navigation:** [[Agentic AI Roadmap]] → [[Agentic Systems]] → 04 - Tool Use & Function Calling
+> **Type:** Concept
 > **Prev:** [[03 - Reasoning Patterns]] | **Next:** [[05 - Single-agent vs Multi-agent]]
 
 ---
 
-## Goal
+## Summary
 
 Tool schemas, argument validation, error handling when the model calls tools wrong.
 
----
 
-## Prerequisites
 
-- [[]]
+## Why it matters
 
----
-
-## Core idea
-
-<!-- Write the one-paragraph explanation here. -->
+<!-- Where does this show up in real systems? What breaks or gets expensive if you don't understand it? -->
 
 
 
-## Mental model
+## Explanation
 
-<!-- Diagram, analogy, or step-by-step picture of how it works. -->
+<!--
+This is the main free-writing space. Write as much or as little as the topic needs.
+No forced structure here — use sub-headings naturally as the explanation grows.
+Good things to include, in whatever order makes sense for THIS topic:
+  - How it works
+  - Key terms/definitions
+  - How it fits with other topics
+  - Diagrams, analogies, ascii/mermaid sketches
+  - Options being compared (if this is a Comparison-type note)
+  - Techniques/approaches (if this is a Technique-type note)
+-->
 
-```
-(sketch / ascii / mermaid later)
-```
 
 
 
-## How it works
+## Examples / Code / Config
 
-<!-- Deepen the explanation. Use headings, lists, and examples. -->
-
-### Key concepts
-
-- 
-
-### Step by step
-
-1. 
-
-### Example
+<!-- Optional. Real snippets, pseudo-code, prompts, configs — whatever grounds the idea. -->
 
 ```text
-# paste prompts, configs, or pseudo-code here
+
 ```
 
+## Comparison (if relevant)
 
+<!-- Delete this whole section if not a comparison-type topic -->
 
-## Tradeoffs & when to use
+| Option | Best for | Avoid when | Notes |
+| --- | --- | --- | --- |
+|  |  |  |  |
 
-| Situation | Prefer this | Prefer something else |
-| --- | --- | --- |
-|  |  |  |
+## When to use / When to avoid
 
 **Use when:**
-
 - 
 
-**Avoid when:**
-
+**Avoid / reconsider when:**
 - 
 
+## Cost, latency, or risk notes
 
-
-## Cost / latency impact
-
-<!-- How this choice affects production cost and speed. -->
-
-- 
+<!-- Optional but valuable for anything touching production. Delete if not relevant. -->
 
 
 
-## Failure modes
+## Failure modes / gotchas
+
+<!-- What goes wrong, especially silently -->
 
 - 
-
-
-
-## Checklist
-
-- [ ] I can explain this in plain language
-- [ ] I know the main tradeoffs
-- [ ] I know the cost / latency impact
-- [ ] I know what breaks in production
-- [ ] I linked related topics below
-
-
 
 ## Related topics
 
 - [[]]
 - [[]]
 
-
-
 ## Resources
 
 - 
 
+## My notes / open questions
 
-
-## Questions to revisit
-
-- 
-
-
-
-## Notes
-
-<!-- Free-form markdown. Keep studying notes here as you go. -->
-
+<!-- Freeform. Running thoughts, things to revisit after building something, disagreements with the source material, etc. -->
