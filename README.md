@@ -39,6 +39,7 @@ It is also for anyone on the same path I am on: expanding backend depth into age
 - **Atomic notes** — one idea per file, linked to related ideas
 - A **consistent writing schema** so every note is navigable the same way
 - A curriculum organised so **production concerns** (eval, observability, guardrails, cost) are first-class, not an afterthought
+- An **Emerging Topics** folder for brand-new inventions that have not settled into a core pillar yet
 
 ## What this is not
 
@@ -68,7 +69,7 @@ A good habit this map is meant to enforce: for any new AI feature, ask about ret
 
 ## How the roadmap is organised
 
-Four parts. Later parts assume earlier ones.
+Four core parts, plus a frontier folder. Later parts assume earlier ones.
 
 | Part | Pillars | Role |
 | --- | --- | --- |
@@ -76,6 +77,7 @@ Four parts. Later parts assume earlier ones.
 | **II — Agentic design** | 04–06 | Agents, context engineering, orchestration / harness |
 | **III — Production** | 07–10 | Eval, observability, optimization, guardrails — demo → production |
 | **IV — Depth & infra** | 11–14 | Fine-tuning, deployment, data pipelines, system design |
+| **V — Frontier** | 15 | Emerging topics — new inventions parked until they graduate |
 
 Start at [`00-Roadmap-Overview.md`](./00-Roadmap-Overview.md) for the full table of contents and how topics connect.
 
@@ -106,10 +108,11 @@ agentic-ai-roadmap/
 ├── 11 - Fine-Tuning & Model Customization/
 ├── 12 - Infrastructure & Deployment/
 ├── 13 - Data Pipelines for AI Systems/
-└── 14 - System Design for AI-Native Applications/
+├── 14 - System Design for AI-Native Applications/
+└── 15 - Emerging Topics/            # new inventions — graduate into pillars later
 ```
 
-Every folder is one pillar. Every numbered file inside it is one topic. Chapter hubs list topics and status; topic notes use [`_template.md`](./_template.md).
+Folders 01–14 are stable pillars. **15 — Emerging Topics** is the overflow lane for things that are brand new or still forming. Use [`_template.md`](./_template.md) for notes; prefer dated filenames like `2026-09 - Topic Name.md`.
 
 ---
 
@@ -171,6 +174,7 @@ cd agentic-ai-roadmap
 | 12 | [Infrastructure & Deployment](./12%20-%20Infrastructure%20%26%20Deployment/) | Serving models, API gateways, scaling, streaming |
 | 13 | [Data Pipelines](./13%20-%20Data%20Pipelines%20for%20AI%20Systems/) | Ingestion, preprocessing, incremental updates, versioning |
 | 14 | [System Design for AI Apps](./14%20-%20System%20Design%20for%20AI-Native%20Applications/) | Architecture patterns, non-determinism, cost-aware design |
+| 15 | [Emerging Topics](./15%20-%20Emerging%20Topics/) | New capabilities, protocols, and patterns — capture here first, graduate later |
 
 ---
 
@@ -181,6 +185,7 @@ cd agentic-ai-roadmap
 PRs and issues are encouraged for:
 
 - Filling in a topic that is still a placeholder (use [`_template.md`](./_template.md))
+- Adding something new to [`15 - Emerging Topics`](./15%20-%20Emerging%20Topics/) when AI invents a capability that does not fit a pillar yet
 - Suggesting a missing topic or pillar (open an issue first for large additions)
 - Improving an explanation or fixing something inaccurate
 - Adding better resources and links (prefer primary docs and papers over listicles)

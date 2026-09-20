@@ -24,6 +24,7 @@ Use this as a **checklist** and a **mental model** when architecting anything ne
 2. **Part II (Ch. 04–06)** — Agents, Context Engineering, Orchestration. Where agentic systems actually get designed.
 3. **Part III (Ch. 07–10)** — Eval, Observability, Optimization, Guardrails. What separates a demo from production.
 4. **Part IV (Ch. 11–14)** — Fine-tuning, Infrastructure, Data pipelines, System design. Deeper customization and surrounding systems.
+5. **Part V ([[Emerging Topics]])** — Overflow lane for brand-new inventions. Capture here first; graduate into a pillar when the idea settles.
 
 A good habit: for any new feature, ask — retrieval strategy, context budget, evaluation, observability, failure mode if the model is wrong — *before* writing code.
 
@@ -196,6 +197,12 @@ Architecture patterns for reliable systems built on a probabilistic core.
 - [[04 - Designing for Non-determinism]]
 - [[05 - Cost-aware Architecture]]
 
+### 15. [[Emerging Topics]]
+
+Fast-moving additions — new capabilities, protocols, and patterns that do not yet have a stable home in pillars 01–14. Capture here first; graduate into a core pillar when the idea settles.
+
+→ Folder hub: [[Emerging Topics]]
+
 ---
 
 ## Parts at a glance
@@ -206,4 +213,5 @@ Architecture patterns for reliable systems built on a probabilistic core.
 | II — Agentic design | [[Agentic Systems]] · [[Context Engineering]] · [[Orchestration & Harness Design]] | How agents get built |
 | III — Production | [[Evaluation & Testing]] · [[Observability]] · [[Performance & Cost Optimization]] · [[Guardrails, Safety & Security]] | Demo → production |
 | IV — Depth & infra | [[Fine-Tuning & Model Customization]] · [[Infrastructure & Deployment]] · [[Data Pipelines for AI Systems]] · [[System Design for AI-Native Applications]] | Customization & surrounding systems |
+| V — Frontier | [[Emerging Topics]] | New inventions parked until they graduate |
 

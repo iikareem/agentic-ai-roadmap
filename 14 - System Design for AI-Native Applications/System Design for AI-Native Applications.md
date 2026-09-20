@@ -9,7 +9,7 @@ tags:
 # System Design for AI-Native Applications
 
 > **Navigation:** [[00-Roadmap-Overview]] → System Design for AI-Native Applications
-> **Prev:** [[Data Pipelines for AI Systems]] | **Next:** —
+> **Prev:** [[System Design for AI-Native Applications]] | **Next:** [[Emerging Topics]]
 
 ---
 
