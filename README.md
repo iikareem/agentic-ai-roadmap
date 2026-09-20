@@ -195,6 +195,6 @@ Please keep the existing note schema for consistency — or open an issue / PR t
 
 ---
 
-## Visibility
+## Why this is public
 
-**Private for now** while topics are still being filled in. The intent is to open it later so other backend engineers making the same transition do not have to rebuild the map from scratch. Feedback via issues is welcome once public.
+Sharing this so other backend engineers making the same transition don't have to build the map from scratch. If it helps you, a star is appreciated — and feel free to open an issue if you disagree with how a topic is framed.
