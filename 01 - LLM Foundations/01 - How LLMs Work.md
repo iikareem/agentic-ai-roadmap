@@ -16,7 +16,7 @@ tags:
 
 ## Summary
 
-An LLM is trained to guess the next token from huge amounts of text. After training, its weights are frozen. At inference you send **input** (a prompt); the model processes it, then produces **output** one token at a time until it stops.
+An LLM is trained to guess the next token from huge amounts of text. At **inference** (a normal API call) the weights stay frozen — the chat itself does not train the model. You *can* train it on your data later via **fine-tuning**, but that is a separate job, not what happens when you call `/chat/completions`.
 
 ---
 
@@ -36,9 +36,18 @@ Billing and token counts live in [[02 - Tokens & Tokenization]]. This note is ab
 
 Then fine-tuning / RLHF teach instruction-following and chat style. Details: [[11 - Fine-Tuning & Model Customization]].
 
-**Backend fact:** after training, **weights are frozen**. Calling the API never updates the model. It cannot learn your private docs from a chat. Put needed data in the prompt, or retrieve it with RAG ([[01 - Why RAG Exists]]).
-
 It did not memorize a database of facts. It learned patterns of language and structure.
+
+**Inference vs training on your data** — easy to mix up:
+
+| What you do | Do weights change? | What actually happens |
+|-------------|--------------------|------------------------|
+| Normal chat / completions API | **No** | Weights stay frozen. Your message is only context for *this* request. |
+| Put docs / examples in the prompt (or RAG) | **No** | "In-context" use of your data for this call only. Next call forgets unless you send it again. |
+| **Fine-tune** (or LoRA / continued training) on your dataset | **Yes** | A separate training job updates weights (or adapters). You then call that new model. |
+| Provider uses logs to train a *future* model (policy / opt-in) | Later, for a new version | Not live learning in your session. Check the vendor's data-use terms. |
+
+So: the model *can* be trained on your data — that is fine-tuning. A normal API call does **not** do that. For private/recent facts without fine-tuning, put them in the prompt or use RAG ([[01 - Why RAG Exists]]).
 
 ---
 
@@ -176,7 +185,7 @@ Step 3 (decode):  same; cache grows by one token
 
 ### 5. Why this leads to RAG
 
-Because weights are frozen and the context window is finite:
+Because at inference weights do not change, and the context window is finite:
 
 1. The model does not know your private or recent data.
 2. You cannot send the whole dataset every call.
@@ -223,7 +232,7 @@ Not a tool you "choose" — it is the base of every LLM. Knowing it helps you de
 ## Failure modes / gotchas
 
 - **Hallucination** — confident, fluent, wrong; optimizes for "sounds right," not "is true."
-- **No memory** — frozen weights; nothing persists unless you send it again.
+- **No memory at inference** — a chat call does not train the model; nothing persists unless you resend it (or you fine-tuned a separate model).
 - **Early mistakes stick** — a wrong early token becomes input for everything after.
 - **Order matters** — left-to-right generation; prompt structure affects output.
 - **Lost in the middle** — start/end favored; RAG chunk order matters.
