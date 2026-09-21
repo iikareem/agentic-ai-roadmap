@@ -16,13 +16,13 @@ tags:
 
 ## Summary
 
-An LLM reads text and guesses the next token, over and over, until it builds an answer. It learned those patterns from huge amounts of text. After training, its weights are frozen — calling the API never updates the model.
+An LLM is trained to guess the next token from huge amounts of text. After training, its weights are frozen. At inference you send **input** (a prompt); the model processes it, then produces **output** one token at a time until it stops.
 
 ---
 
 ## Why it matters
 
-Without this mental model, the API feels like magic. Once you see "predict the next token from patterns," hallucinations, streaming, caching, and the need for RAG stop being mysterious.
+Without this mental model, the API feels like magic. Once you see "trained to predict the next token from patterns," hallucinations, streaming, caching, and the need for RAG stop being mysterious.
 
 Billing and token counts live in [[02 - Tokens & Tokenization]]. This note is about the mechanics.
 
@@ -30,16 +30,81 @@ Billing and token counts live in [[02 - Tokens & Tokenization]]. This note is ab
 
 ## Explanation
 
-### 1. The generation loop
+### 1. Training
 
-You give the model some text. It asks: _"What token is most likely next?"_ It appends that token and asks again. Repeat until it predicts a stop token.
+**Pretraining:** the model practiced "guess the next token" on huge batches of text, measured the error (**loss**), and nudged its weights a tiny bit (**gradient descent**). It did this over trillions of tokens.
 
-This is **autoregressive generation** — the model's own output becomes its next input.
+Then fine-tuning / RLHF teach instruction-following and chat style. Details: [[11 - Fine-Tuning & Model Customization]].
+
+**Backend fact:** after training, **weights are frozen**. Calling the API never updates the model. It cannot learn your private docs from a chat. Put needed data in the prompt, or retrieve it with RAG ([[01 - Why RAG Exists]]).
+
+It did not memorize a database of facts. It learned patterns of language and structure.
+
+---
+
+### 2. Input — what happens when you send a prompt
+
+You send text (system prompt, tools, history, user message). Before the model runs, text becomes token IDs — that step is [[02 - Tokens & Tokenization]]. From IDs onward:
+
+```text
+token IDs → embedding lookup → vectors (+ position) → transformer layers
+```
+
+- **Embedding:** the ID is a row number in a table inside the LLM; that row is the token's vector (learned in training).
+- **Position:** added so order matters ("dog bites man" ≠ "man bites dog").
+- Search / RAG embeddings are a different thing: [[04 - Embeddings]].
+
+A **transformer** reads the whole sequence at once — every token can connect to every other token in one pass. That is why distant words can still link.
+
+**Attention** decides what matters. For each token: "which other tokens help me understand this one?" In "The trophy didn't fit in the suitcase because it was too big," attention links "it" to "trophy."
+
+To make sense of the input (and later to predict):
+
+1. Take the **last** token.
+2. Compare it with **all** tokens in the sequence.
+3. Assign each a **percentage** of relevance (they sum to 100%).
+4. Pull information from those tokens using the percentages.
+
+This is **self-attention** — tokens attend to other tokens in the **same** sequence. What gets high score is **learned in training**, not a hand-written rule.
+
+| Token | Attention score | Why |
+|-------|-----------------|-----|
+| The | 10% | Little useful signal |
+| sky | 50% | What is being described |
+| is | 40% | A description comes next |
+
+For **every token**, the model builds three vectors:
+
+| Name | Meaning | Role |
+|------|---------|------|
+| **Q** (Query) | What this token is looking for | Only the **last** token's Q asks |
+| **K** (Key) | What this token offers | Matched against Q → percentages |
+| **V** (Value) | The information to take | Weighted by percentages, then summed |
+
+**Q vs K** = how much to look. **V** = what you take.
+
+What matters for backend work:
+
+1. Q, K, V exist for every token.
+2. Old tokens' **K and V never change** → they can be saved.
+3. Only the newest token needs a fresh **Q** → Q is not cached.
+
+Skip for now: the matrix math and multi-head details.
+
+Attention runs in **many layers**. Early layers catch local/grammar cues; later layers catch meaning and tone.
+
+The first pass over the full prompt is **prefill**: process the whole input in parallel and build K,V for every prompt token.
+
+---
+
+### 3. Output — how the answer is produced
+
+After the input is processed, the model generates the reply **one token at a time**. This is **autoregressive generation** — the model's own output becomes its next input.
 
 1. Take all tokens so far (prompt + what it already wrote).
 2. Predict the **next one** token.
 3. Append it.
-4. Repeat until stop.
+4. Repeat until it predicts a stop token.
 
 The model holds nothing between steps. Every step re-reads the **whole sequence from the start**.
 
@@ -53,20 +118,6 @@ The model holds nothing between steps. Every step re-reads the **whole sequence 
 | 4 | The sky is blue today . | **[STOP]** |
 
 Final answer: `blue today.`
-
-> Text → token IDs happens *before* this loop. That step is [[02 - Tokens & Tokenization]]. This note starts once you already have IDs.
-
-### 2. From token IDs into the model
-
-```text
-token IDs → embedding lookup → vectors (+ position) → transformer layers
-```
-
-- **Embedding:** the ID is a row number in a table inside the LLM; that row is the token's vector (learned in training).
-- **Position:** added so order matters ("dog bites man" ≠ "man bites dog").
-- Search / RAG embeddings are a different thing: [[04 - Embeddings]].
-
-### 3. Scores → one token
 
 Each step does not return a word directly. It scores **every token** in the vocabulary, then one is picked.
 
@@ -88,61 +139,7 @@ How the pick is shaped (does not change the model):
 
 Even at temperature `0`, outputs can differ slightly — always validate. Full detail: [[06 - Determinism & Sampling]].
 
-### 4. Training vs frozen weights
-
-**Pretraining:** practice "guess the next token" on huge batches, measure error (**loss**), nudge weights (**gradient descent**), over trillions of tokens.
-
-Then fine-tuning / RLHF teach instruction-following and chat style. Details: [[11 - Fine-Tuning & Model Customization]].
-
-**Backend fact:** after training, **weights are frozen**. The API cannot learn your private docs from a chat. Put needed data in the prompt, or retrieve it with RAG ([[01 - Why RAG Exists]]).
-
-It did not memorize a database of facts. It learned patterns of language and structure.
-
-### 5. Attention
-
-A **transformer** reads the whole sequence at once — every token can connect to every other token in one pass. That is why distant words can still link.
-
-**Attention** decides what matters. For each token: "which other tokens help me understand this one?" In "The trophy didn't fit in the suitcase because it was too big," attention links "it" to "trophy."
-
-To predict the next token:
-
-1. Take the **last** token.
-2. Compare it with **all** tokens in the sequence.
-3. Assign each a **percentage** of relevance (they sum to 100%).
-4. Pull information from those tokens using the percentages.
-5. Predict the next token from that mix.
-
-This is **self-attention** — tokens attend to other tokens in the **same** sequence. What gets high score is **learned in training**, not a hand-written rule.
-
-| Token | Attention score | Why |
-|-------|-----------------|-----|
-| The | 10% | Little useful signal |
-| sky | 50% | What is being described |
-| is | 40% | A description comes next |
-
-Attention runs in **many layers**. Early layers catch local/grammar cues; later layers catch meaning and tone. Only the last layer's output picks the token.
-
-### 6. Q, K, V
-
-For **every token**, the model builds three vectors:
-
-| Name | Meaning | Role |
-|------|---------|------|
-| **Q** (Query) | What this token is looking for | Only the **last** token's Q asks |
-| **K** (Key) | What this token offers | Matched against Q → percentages |
-| **V** (Value) | The information to take | Weighted by percentages, then summed |
-
-**Q vs K** = how much to look. **V** = what you take.
-
-What matters for backend work:
-
-1. Q, K, V exist for every token.
-2. Old tokens' **K and V never change** → they can be saved.
-3. Only the newest token needs a fresh **Q** → Q is not cached.
-
-Skip for now: the matrix math and multi-head details.
-
-### 7. Prefill vs decode
+Only the last layer's output is used to pick the token.
 
 | Phase | What happens | Speed |
 |-------|--------------|-------|
@@ -151,7 +148,9 @@ Skip for now: the matrix math and multi-head details.
 
 That is why APIs stream (SSE / websockets): each token waits on the previous one. See [[04 - Streaming Architecture]].
 
-### 8. KV caching
+---
+
+### 4. KV caching
 
 Without a cache, every decode step **recomputes** K and V for all old tokens — even though they never change.
 
@@ -173,7 +172,9 @@ Step 3 (decode):  same; cache grows by one token
 
 **Prompt caching** (provider feature, same idea): stable prefixes (system prompt, tools) reused across calls. Put that text **at the start**. Billing: [[02 - Tokens & Tokenization]]. Mechanics: [[06 - Prompt Caching]].
 
-### 9. Why this leads to RAG
+---
+
+### 5. Why this leads to RAG
 
 Because weights are frozen and the context window is finite:
 
