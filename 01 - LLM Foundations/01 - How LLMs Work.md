@@ -16,34 +16,32 @@ tags:
 
 ## Summary
 
-An LLM (Large Language Model) is a system that reads text and guesses the next word, over and over, until it builds a full answer. It learned to guess well by reading huge amounts of text. It does not "think" like a human — it predicts patterns.
+An LLM reads text and guesses the next token, over and over, until it builds an answer. It learned those patterns from huge amounts of text. After training, its weights are frozen — calling the API never updates the model.
 
 ---
 
 ## Why it matters
 
-If you don't understand this, you will treat the model like magic. Then when it makes mistakes, you won't know why. Once you understand "it just predicts the next word based on patterns," a lot of its weird behavior (wrong facts, forgetting things, sounding confident when wrong) starts to make sense.
+Without this mental model, the API feels like magic. Once you see "predict the next token from patterns," hallucinations, streaming, caching, and the need for RAG stop being mysterious.
 
-It also explains the numbers you will fight with later: why long prompts cost more, why answers stream in slowly, why the context window has a limit, and why caching saves money.
+Billing and token counts live in [[02 - Tokens & Tokenization]]. This note is about the mechanics.
 
 ---
 
 ## Explanation
 
-### 1. The loop
+### 1. The generation loop
 
-An LLM is a very big pattern-matching machine. You give it some text (a question, an instruction). It looks at that text and asks: _"Based on everything I learned, what word is most likely to come next?"_
+You give the model some text. It asks: _"What token is most likely next?"_ It appends that token and asks again. Repeat until it predicts a stop token.
 
-It picks that word, adds it to the text, and asks the same question again for the _next_ word. It repeats this one word (or piece of a word) at a time until it finishes the answer.
+This is **autoregressive generation** — the model's own output becomes its next input.
 
-This is called **autoregressive generation** — "auto-regressive" means the model's **own output becomes its next input**. Every step does the same four things:
-
-1. Take all the tokens so far (your prompt + what the model already wrote).
+1. Take all tokens so far (prompt + what it already wrote).
 2. Predict the **next one** token.
-3. Add that token to the end.
-4. Repeat until the model predicts a "stop" token.
+3. Append it.
+4. Repeat until stop.
 
-The model holds nothing between steps. Every step, it reads the **whole sequence from the start**.
+The model holds nothing between steps. Every step re-reads the **whole sequence from the start**.
 
 **Prompt:** `The sky is`
 
@@ -56,11 +54,21 @@ The model holds nothing between steps. Every step, it reads the **whole sequence
 
 Final answer: `blue today.`
 
-### 2. What comes out of each step
+> Text → token IDs happens *before* this loop. That step is [[02 - Tokens & Tokenization]]. This note starts once you already have IDs.
 
-The model does not hand you one word directly. It gives a **score for every token** in its vocabulary — how likely each one is to come next. Then one token is picked from those scores.
+### 2. From token IDs into the model
 
-Step 1 (input: `The sky is`):
+```text
+token IDs → embedding lookup → vectors (+ position) → transformer layers
+```
+
+- **Embedding:** the ID is a row number in a table inside the LLM; that row is the token's vector (learned in training).
+- **Position:** added so order matters ("dog bites man" ≠ "man bites dog").
+- Search / RAG embeddings are a different thing: [[04 - Embeddings]].
+
+### 3. Scores → one token
+
+Each step does not return a word directly. It scores **every token** in the vocabulary, then one is picked.
 
 | Token | Probability |
 |-------|-------------|
@@ -68,148 +76,158 @@ Step 1 (input: `The sky is`):
 | clear | 20% |
 | cloudy | 15% |
 | dark | 5% |
-| ... (thousands more) | ... |
+| ... | ... |
 
-`blue` is picked and added to the input. Then step 2 starts. How the pick is made (greedy, temperature, top-p) is [[06 - Determinism & Sampling]].
+How the pick is shaped (does not change the model):
 
-### 3. How it learned to guess
+| Knob | What it does | Use when |
+|------|--------------|----------|
+| **Temperature** | Low = sharp/stable. High = varied. `0` = always top token (greedy). | Low for JSON/tools. Higher for creative writing. |
+| **Top-k** | Keep only the *k* most likely, then pick. | Cap long-tail noise. |
+| **Top-p** | Keep the smallest set whose probs sum to *p*, then pick. | Soft version of top-k. |
 
-During training, the model read a massive amount of text from the internet, books, code, etc. For every piece of text, it practiced: "given these words, guess the next one." When it guessed wrong, it adjusted itself a tiny bit to do better next time. It did this billions of times. Over time, it got very good at guessing what word usually comes next in almost any situation.
+Even at temperature `0`, outputs can differ slightly — always validate. Full detail: [[06 - Determinism & Sampling]].
 
-It did **not** memorize facts like a database. It learned _patterns_ of language, reasoning, and structure.
+### 4. Training vs frozen weights
 
-### 4. Attention: how it decides what matters
+**Pretraining:** practice "guess the next token" on huge batches, measure error (**loss**), nudge weights (**gradient descent**), over trillions of tokens.
 
-**Transformer** is the design behind every LLM. It reads the entire input at once — every token can connect to every other token in a single pass — instead of word-by-word with fading memory like older models. That is why it can link things far apart in a long document.
+Then fine-tuning / RLHF teach instruction-following and chat style. Details: [[11 - Fine-Tuning & Model Customization]].
 
-**Attention** is the part that does the connecting. For each token it asks: "which other tokens matter for understanding this one?" In "The trophy didn't fit in the suitcase because it was too big," attention is what links "it" back to "trophy."
+**Backend fact:** after training, **weights are frozen**. The API cannot learn your private docs from a chat. Put needed data in the prompt, or retrieve it with RAG ([[01 - Why RAG Exists]]).
 
-To predict the next token, the model:
+It did not memorize a database of facts. It learned patterns of language and structure.
 
-1. Takes the **last token**.
-2. Compares it with **all tokens** in the sequence (including itself).
-3. Gives each token a **percentage**: how relevant it is right now.
-4. Uses those percentages to pull information out of those tokens.
-5. Predicts the next token from that mix.
+### 5. Attention
 
-This is **self-attention** — "self" because the tokens look at other tokens in the **same** sequence.
+A **transformer** reads the whole sequence at once — every token can connect to every other token in one pass. That is why distant words can still link.
 
-Predicting after `The sky is`:
+**Attention** decides what matters. For each token: "which other tokens help me understand this one?" In "The trophy didn't fit in the suitcase because it was too big," attention links "it" to "trophy."
+
+To predict the next token:
+
+1. Take the **last** token.
+2. Compare it with **all** tokens in the sequence.
+3. Assign each a **percentage** of relevance (they sum to 100%).
+4. Pull information from those tokens using the percentages.
+5. Predict the next token from that mix.
+
+This is **self-attention** — tokens attend to other tokens in the **same** sequence. What gets high score is **learned in training**, not a hand-written rule.
 
 | Token | Attention score | Why |
 |-------|-----------------|-----|
-| The | 10% | Little useful information |
-| sky | 50% | Tells the model what is being described |
-| is | 40% | Says a description comes next |
+| The | 10% | Little useful signal |
+| sky | 50% | What is being described |
+| is | 40% | A description comes next |
 
-`sky` has the highest score, so it shapes the result the most, which makes `blue` very likely.
+Attention runs in **many layers**. Early layers catch local/grammar cues; later layers catch meaning and tone. Only the last layer's output picks the token.
 
-> What the model pays more attention to is **learned during training**. There is no fixed rule written by a person.
+### 6. Q, K, V
 
-### 5. Q, K, V — naming the parts of that process
+For **every token**, the model builds three vectors:
 
-Those five steps have names. For **every token**, the model builds three lists of numbers (vectors):
+| Name | Meaning | Role |
+|------|---------|------|
+| **Q** (Query) | What this token is looking for | Only the **last** token's Q asks |
+| **K** (Key) | What this token offers | Matched against Q → percentages |
+| **V** (Value) | The information to take | Weighted by percentages, then summed |
 
-| Name | Meaning | Role in the steps above |
-|------|---------|-------------------------|
-| **Q** (Query) | What this token is looking for | Step 1–2: the last token's Q does the asking |
-| **K** (Key) | What this token offers | Step 2–3: Q is matched against every K to get the percentages |
-| **V** (Value) | The actual information in this token | Step 4: each V is multiplied by its percentage, then all are added |
+**Q vs K** = how much to look. **V** = what you take.
 
-Short version: **Q vs K** decides *how much* to look at each token. **V** is the *information* that gets taken.
+What matters for backend work:
 
-What you must know as a backend engineer:
+1. Q, K, V exist for every token.
+2. Old tokens' **K and V never change** → they can be saved.
+3. Only the newest token needs a fresh **Q** → Q is not cached.
 
-1. Q, K, V are three vectors built for **every token**.
-2. Q looks, K is matched, V is taken.
-3. Old tokens' **K and V never change** — so they can be saved.
-4. **Q** is only needed for the newest token — so it is not saved.
+Skip for now: the matrix math and multi-head details.
 
-Points 3 and 4 are the whole reason caching works. That comes in step 7.
+### 7. Prefill vs decode
 
-What you can skip for now: how the three vectors are calculated, the matrix math, and multi-head attention details.
+| Phase | What happens | Speed |
+|-------|--------------|-------|
+| **Prefill** | Whole prompt in parallel. Build and save K,V for every prompt token. | Fast relative to length |
+| **Decode** | One new token at a time: build its Q,K,V → append K,V to cache → Q over the cache → pick. | Slow — sequential |
 
-### 6. Two details that change the cost
+That is why APIs stream (SSE / websockets): each token waits on the previous one. See [[04 - Streaming Architecture]].
 
-- **Many layers:** attention happens in **every layer** of the model (dozens of layers), not once. Only the last layer's output is used to pick the token. Early layers catch simple things (grammar, nearby words); later layers catch meaning, topic, and tone.
-- **The prompt is processed at once:** all your prompt tokens go through in one pass. Only **after** that does the model switch to one token per step.
+### 8. KV caching
 
-### 7. The repeated work problem
+Without a cache, every decode step **recomputes** K and V for all old tokens — even though they never change.
 
-At each step, the old tokens are the same as the step before, so their K and V come out **exactly the same**. Without caching, the model **calculates them again** every step.
-
-| Step | Tokens processed | New | Repeated from before |
-|------|------------------|-----|----------------------|
+| Step | Tokens processed | New | Recomputed from before |
+|------|------------------|-----|------------------------|
 | 1 | The, sky, is | 3 | 0 |
 | 2 | The, sky, is, blue | 1 | 3 |
 | 3 | The, sky, is, blue, today | 1 | 4 |
-| 4 | The, sky, is, blue, today, . | 1 | 5 |
 
-The wasted work grows as the text gets longer.
-
-### 8. KV caching: the fix and its price
-
-**Save the K and V of old tokens and reuse them.** Each step then only needs the **Q, K, V of the new token** plus the **saved K and V** of the old ones.
+**Fix:** save K and V of old tokens; each step only computes Q,K,V for the new token and reuses the rest.
 
 ```text
-Step 1  (prompt)  : build K,V for every prompt token  → save them
-Step 2  (new tok) : build Q,K,V for the new token only
-                    + reuse the saved K,V             → predict
-Step 3  (new tok) : same again, cache is one token bigger
+Step 1 (prefill): build K,V for every prompt token → save
+Step 2 (decode):  Q,K,V for new token + reuse saved K,V → predict
+Step 3 (decode):  same; cache grows by one token
 ```
 
-The price is **memory**: those saved K and V sit there for every token and every layer. A longer context means a bigger cache, so more GPU memory per request.
+**Price:** GPU memory. Cache grows with tokens × layers. Longer context → bigger cache → fewer concurrent users on self-hosted serving.
 
-This is also the mechanism behind provider "prompt caching" ([[06 - Prompt Caching]]): a repeated prefix (system prompt, tool list, reference docs) doesn't have to be processed from scratch again.
+**Prompt caching** (provider feature, same idea): stable prefixes (system prompt, tools) reused across calls. Put that text **at the start**. Billing: [[02 - Tokens & Tokenization]]. Mechanics: [[06 - Prompt Caching]].
+
+### 9. Why this leads to RAG
+
+Because weights are frozen and the context window is finite:
+
+1. The model does not know your private or recent data.
+2. You cannot send the whole dataset every call.
+3. Huge prompts hurt accuracy (**lost in the middle**): attention percentages sum to 100%, and models favor start/end over the middle.
+4. **Hallucination:** the model always produces *plausible* next tokens, even when it does not know. Weak attention makes it worse; it is not the root cause.
+
+RAG retrieves only the closest chunks into the prompt. Details: [[01 - Why RAG Exists]].
 
 ---
 
 ## Examples / Code / Config
 
-You don't call this concept directly — it's the foundation under every API call. What you can do is read the loop in your own logs: a streaming response arriving token by token *is* step 1–4 above, and a cache-hit counter in your usage metrics *is* step 8.
-
 ```text
 POST /chat/completions
-  input : "The capital of France is"        ← processed in one pass, K,V cached
-  stream: "Paris" · "." · [STOP]            ← one token per step, reusing the cache
+  input : system + tools + history + user   ← prefill (stable prefix first)
+  stream: token · token · token · [STOP]    ← decode
   usage : input_tokens, output_tokens, cached_tokens
 ```
 
-Log those three usage numbers from day one — they are the direct, measurable trace of everything above.
+Streaming = decode. Cache-hit counters = KV / prompt caching. Money from those counts: [[02 - Tokens & Tokenization]].
 
 ---
 
 ## When to use / When to avoid
 
-This isn't a tool you "choose to use" — it's the base of every LLM. But knowing this helps you decide:
+Not a tool you "choose" — it is the base of every LLM. Knowing it helps you decide trust:
 
-**Trust the model's raw answer when:**
+**Trust the raw answer when:** language, reasoning, summarizing, common patterns; or structured work with low temperature + validation.
 
-- The task is about language, reasoning, summarizing, or common knowledge patterns.
-
-**Don't trust the model's raw answer when:**
-
-- You need exact facts, recent facts, or numbers it wasn't trained on — use RAG or tools instead (covered later in the roadmap).
+**Don't trust the raw answer when:** exact / recent / private facts (use RAG or tools); or bit-identical replies with no validator (even temp `0` is not a hard guarantee).
 
 ---
 
 ## Cost, latency, or risk notes
 
-- **Output is the slow part.** Each generated token is its own step, so long answers take long no matter how fast the model is.
-- **Longer input costs more compute**, because every token is compared with every other token (step 4).
-- **Long chats get worse over time** — the sequence keeps growing, so every new step has more to attend to and a bigger cache to hold.
-- **Caching trades compute for memory** (step 8). On self-hosted serving, cache size per request is what caps how many users you can serve at once.
+- **Decode is the slow part** — output is sequential.
+- **Longer input → more compute** — every token compared with every other.
+- **API is usually stateless** — resend history every call; manage the window yourself ([[03 - Context Window]]).
+- **Caching trades compute for memory.**
+- **Billing math:** [[02 - Tokens & Tokenization]].
 
 ---
 
 ## Failure modes / gotchas
 
-- **Hallucination**: the model can generate a very confident, well-written, completely wrong answer, because it's optimizing for "what sounds like a good next word," not "what is true."
-- **No real memory**: it remembers nothing between separate conversations unless you send that information again yourself.
-- **Early mistakes stick**: a wrong token early in the answer becomes input for every later token, so the whole answer can drift.
-- **Order matters**: because it builds the answer left to right, word order and structure in your prompt affect the output more than people expect.
-- **Lost in the middle**: models notice the start and end of a long input more than the middle — so the order of your RAG results matters.
-- **Cache is per prefix**: change one character near the start of your prompt and the saved work for everything after it is thrown away.
+- **Hallucination** — confident, fluent, wrong; optimizes for "sounds right," not "is true."
+- **No memory** — frozen weights; nothing persists unless you send it again.
+- **Early mistakes stick** — a wrong early token becomes input for everything after.
+- **Order matters** — left-to-right generation; prompt structure affects output.
+- **Lost in the middle** — start/end favored; RAG chunk order matters.
+- **Cache is prefix-based** — change one early character and work after it is invalidated.
+- **Probabilistic output** — validate, retry, use structured outputs for tools/DB writes.
 
 ---
 
@@ -220,30 +238,22 @@ This isn't a tool you "choose to use" — it's the base of every LLM. But knowin
 - [[04 - Embeddings]]
 - [[06 - Determinism & Sampling]]
 - [[06 - Prompt Caching]]
+- [[01 - Why RAG Exists]]
+- [[04 - Streaming Architecture]]
+- [[11 - Fine-Tuning & Model Customization]]
 
 ---
 
 ## Resources
 
-- Look for a simple, visual explainer on "transformers" and "attention" (many good beginner videos and blog posts exist — pick one with diagrams, not equations, for your first pass).
+- A simple visual explainer on transformers and attention (diagrams first, equations later).
 
 ---
 
 ## My notes / open questions
 
-My own recap, in one breath:
+Still to revisit after building something:
 
-> LLMs are trained using the transformer architecture on huge amounts of text. During training, they repeatedly predict the next word and get corrected based on how wrong the guess was, until they get good at it. When you ask a question, only the text you provide right now (your question + conversation + any documents) forms the **context window** — the training data itself isn't there anymore, just the patterns learned from it. The model then generates a reply one token at a time, using attention to weigh which parts of the context window matter most for each next word, and it stops on its own once it produces a built-in "done" signal.
-
-Still to revisit:
-
-- How much GPU memory the KV cache actually takes for our model size and context length — and how that caps concurrent users.
-- Where our latency really goes: time to first token vs the token stream vs tool round-trips.
-- What cache hit rate we get on our system prompt in practice.
-
-**Key takeaways**
-
-- Generation is a loop: **predict one token, add it, repeat**.
-- Each step needs the **Q of the newest token** and the **K and V of all tokens**.
-- **K and V of old tokens never change**, so recomputing them is wasted work.
-- **KV caching** fixes that waste, and the price is **memory**.
+- KV cache GPU memory for our model size / context — and how that caps concurrent users.
+- Where latency goes: time-to-first-token (after prefill) vs stream vs tool round-trips.
+- Real prompt-cache hit rate on our system prompt.
