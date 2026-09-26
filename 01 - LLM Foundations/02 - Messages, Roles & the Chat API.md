@@ -35,12 +35,12 @@ The chat API looks like a conversation between labelled participants, but the mo
 
 You don't send a string. You send an ordered list of messages, each tagged with a **role**:
 
-| Role | Who writes it | What it's for |
-|------|---------------|---------------|
-| `system` (or `developer`) | You | Standing instructions, persona, rules. Usually first. |
-| `user` | The end user | The request. Untrusted input. |
-| `assistant` | The model | Its previous replies — including any tool calls it asked for. |
-| `tool` | Your code | The result of a tool the model called, fed back in. |
+| Role                      | Who writes it | What it's for                                                 |
+| ------------------------- | ------------- | ------------------------------------------------------------- |
+| `system` (or `developer`) | You           | Standing instructions, persona, rules. Usually first.         |
+| `user`                    | The end user  | The request. Untrusted input.                                 |
+| `assistant`               | The model     | Its previous replies — including any tool calls it asked for. |
+| `tool`                    | Your code     | The result of a tool the model called, fed back in.           |
 
 The `assistant` messages in your history were generated earlier and are now just input text. The model has no memory of producing them; it re-reads them like anything else.
 
