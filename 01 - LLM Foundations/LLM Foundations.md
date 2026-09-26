@@ -28,6 +28,7 @@ The "physics" you build on — enough conceptual depth to reason about model beh
 | 07 | [[07 - Determinism & Sampling]] | Done — Temperature, top-p, sampling; why outputs vary and how to control it. |
 | 08 | [[08 - Structured Output]] | Done — JSON mode, function/tool calling schemas, grammar-constrained decoding. |
 | 09 | [[09 - Multi-modality]] | Done — Text, image, audio, video input/output — when and why to use it. |
+| 10 | [[10 - Chapter Recap]] | Not started — End-of-chapter synthesis: the request end to end, how the topics connect, what to memorize. |
 
 ---
 
@@ -42,6 +43,7 @@ The "physics" you build on — enough conceptual depth to reason about model beh
 - [x] [[07 - Determinism & Sampling]] — Temperature, top-p, sampling; why outputs vary and how to control it.
 - [x] [[08 - Structured Output]] — JSON mode, function/tool calling schemas, grammar-constrained decoding.
 - [x] [[09 - Multi-modality]] — Text, image, audio, video input/output — when and why to use it.
+- [ ] [[10 - Chapter Recap]] — End-of-chapter synthesis: the request end to end, how the topics connect, what to memorize.
 
 ---
 

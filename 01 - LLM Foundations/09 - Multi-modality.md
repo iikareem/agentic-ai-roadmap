@@ -10,7 +10,7 @@ tags:
 
 > **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 09 - Multi-modality  
 > **Type:** Concept  
-> **Prev:** [[08 - Structured Output]] | **Next:** —
+> **Prev:** [[08 - Structured Output]] | **Next:** [[10 - Chapter Recap]]
 
 ---
 

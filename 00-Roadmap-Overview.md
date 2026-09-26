@@ -45,6 +45,7 @@ The "physics" you build on — enough conceptual depth to reason about model beh
 - [[07 - Determinism & Sampling]]
 - [[08 - Structured Output]]
 - [[09 - Multi-modality]]
+- [[10 - Chapter Recap]]
 
 ### 02. [[Prompt Engineering]]
 
