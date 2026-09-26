@@ -17,53 +17,63 @@ tags:
 
 ## Summary
 
-The nine topics in this chapter are not nine subjects. They are one mechanism described from nine angles, and almost every one of them is a *consequence* of the first. This note re-tells the chapter as a single explanation: what the machine actually is, what that forces the API to look like, what problems that shape creates, and how each topic is the answer to a problem the previous one caused.
+This chapter has nine topics, but they are not nine separate subjects. They are one machine, looked at from nine sides. Most of them are just a result of the first one.
 
-Read it after finishing the chapter. If a paragraph here feels new rather than familiar, that is the topic to go back to.
+This note tells the whole chapter as one story. What the machine really is. What that forces the API to look like. What problems that creates. And how each topic is the fix for a problem the topic before it caused.
 
----
-
-## The sentence everything hangs off
-
-> **A language model is a frozen function that reads one flat sequence of token IDs and predicts the next token, one at a time, forever forgetting.**
-
-Take that apart, because each clause is a topic:
-
-- **Frozen** — the weights don't change when you call it. So it cannot learn your data at runtime, which is why you have to *send* your data. That is the root of context windows, RAG, and every "it forgot what I told it" bug.
-- **One flat sequence** — there is no conversation object inside the model, no roles, no structure. Everything you think of as structure is text with delimiters in it. That is the root of prompt injection.
-- **Token IDs** — not characters, not words. That is the root of cost, limits, and latency accounting.
-- **Predicts the next token** — a probability distribution over a vocabulary, not a lookup of an answer. That is the root of hallucination, temperature, and broken JSON.
-- **One at a time** — output is sequential while input is parallel. That is the root of streaming, of output costing more than input, and of the whole caching story.
-- **Forgetting** — nothing survives the response. That is the root of statelessness, of growing agent costs, and of memory being *your* database.
-
-When something about model behaviour surprises you, the move is always the same: figure out which clause of that sentence you just bumped into.
+Read this after you finish the chapter. If a part here feels new instead of familiar, go back to that topic.
 
 ---
 
-## Act 1 — The machine, and the four things it leaks
+## The one sentence to remember
 
-[[01 - How LLMs Work]] is load-bearing for the whole chapter, and really only three mechanics matter downstream.
+> **A language model is a frozen function. It reads one flat list of token IDs, predicts the next token, one at a time, and then forgets everything.**
 
-**Prediction, not retrieval.** Pretraining was "guess the next token" over trillions of tokens, adjusting weights against a loss. The model didn't memorize a fact database, it learned the shape of language and the structure inside it. Fine-tuning and RLHF then taught it to behave like an assistant. This is why a fluent confident wrong answer isn't a malfunction — producing plausible next tokens *is* the function, and plausible and true only usually coincide. It is also why "the model can be trained on my data" and "my API call trains the model" are different statements: the first is a separate fine-tuning job that produces a new model, the second never happens.
+Every part of that sentence is a topic:
 
-**Attention reads everything uniformly.** For each token the model builds a **Query** (what am I looking for), a **Key** (what do I offer), and a **Value** (what can be taken from me). Queries are matched against Keys to produce relevance percentages that sum to 100%, and Values are pulled in weighted by those percentages. Two consequences that come back later in the chapter and are easy to miss:
+- **Frozen** — the weights do not change when you call it. So it cannot learn your data while running. You have to *send* your data. This is where context windows and RAG come from, and why the model "forgets" what you told it.
+- **One flat list** — there is no chat object inside the model. No roles. No structure. Everything you think is structure is just text with markers in it. This is where prompt injection comes from.
+- **Token IDs** — not letters, not words. This is where cost, limits, and speed come from.
+- **Predicts the next token** — it picks from a list of chances, it does not look up an answer. This is where hallucination, temperature, and broken JSON come from.
+- **One at a time** — reading the input is parallel, writing the output is not. This is where streaming comes from, and why output costs more than input.
+- **Forgets everything** — nothing is kept after the reply. This is where statelessness comes from, why agents get more expensive every turn, and why memory is *your* database.
 
-1. Because scores are a percentage split, adding more context *dilutes* every existing token's share. Long context isn't just slower, it's genuinely worse at holding onto any one detail — the **lost in the middle** effect, where the start and end of a long prompt are used better than the middle.
-2. Because attention runs over the whole sequence with no notion of privilege, there is no mechanism by which one span of text can outrank another. Remember this when you get to roles.
-
-**Prefill is parallel, decode is sequential, and old Keys and Values never change.** The first pass over your prompt processes it all at once and builds K and V for every prompt token — that's **prefill**, and it's what time-to-first-token measures. Then generation goes one token at a time, each step re-reading everything so far — that's **decode**, and it's what tokens-per-second measures. These are two different performance problems with two different fixes, which is why you should never collapse them into one "latency" number.
-
-And since a past token's K and V can never change, they can be saved instead of recomputed: **KV caching**. The price is GPU memory that grows with tokens × layers, which is what caps concurrent users when you self-host. The provider-side version of the same trick is **prompt caching** on stable prefixes, and it explains a rule that otherwise sounds arbitrary — *stable content goes first* — because a cache keyed on a prefix dies the moment one early character changes.
-
-So Act 1 leaks four things into the rest of the chapter: output is probabilistic, long context degrades, latency has two halves, and prefixes are precious.
+So when the model surprises you, do one thing: find which part of that sentence you just hit.
 
 ---
 
-## Act 2 — The interface, which is an illusion built on flattening
+## Part 1 — The machine, and the four things it causes
 
-[[02 - Messages, Roles & the Chat API]] is where the machine meets an API, and the API tells you a small lie: that you're sending a conversation between labelled participants.
+[[01 - How LLMs Work]] holds up the whole chapter. Only three mechanics really matter later.
 
-You send an array — `system` for standing instructions, `user` for the request, `assistant` for the model's own past replies, `tool` for results your code fed back. Then a **chat template** flattens all of it into exactly the one flat sequence Act 1 described, using **special tokens** as delimiters:
+**It predicts, it does not look things up.** In training, it guessed the next token over and over across trillions of tokens, and its weights were nudged each time it was wrong. It did not save a list of facts. It learned the patterns of language. Later, fine-tuning and RLHF taught it to act like an assistant.
+
+This is why a smooth, confident, wrong answer is not a bug. Making a likely next token *is* the job. Likely and true are usually the same thing, but not always.
+
+It also clears up a common mix-up. "The model can be trained on my data" and "my API call trains the model" are two different things. The first is a separate fine-tuning job that gives you a new model. The second never happens.
+
+**Attention reads everything the same way.** For each token the model builds three things: a **Query** (what am I looking for), a **Key** (what do I offer), and a **Value** (what can you take from me). Queries are matched against Keys to get relevance scores. Those scores are shares of 100%. Then Values are pulled in using those shares.
+
+Two results of this come back later, and they are easy to miss:
+
+1. The scores always add up to 100%. So adding more context makes every other token's share smaller. Long context is not just slower. It is really worse at holding on to any one detail. This is the **lost in the middle** problem, where the start and end of a long prompt get used better than the middle.
+2. Attention reads the whole list with no idea of rank. So no piece of text can beat another piece of text. Keep this in mind when you get to roles.
+
+**Reading the prompt is fast, writing the reply is slow, and old Keys and Values never change.** The first pass reads your whole prompt at once and builds K and V for every prompt token. This is **prefill**, and it is what time-to-first-token measures. Then it writes one token at a time, re-reading everything each step. This is **decode**, and it is what tokens-per-second measures.
+
+These are two different speed problems with two different fixes. Never mash them into one "latency" number.
+
+And because an old token's K and V can never change, you can save them instead of computing them again. That is **KV caching**. The cost is GPU memory, which grows with tokens × layers. That memory is what limits how many users you can serve at once when you host it yourself. The provider version of the same trick is **prompt caching** on the stable start of your prompt. This explains a rule that sounds random otherwise: *put stable text first*. The cache is keyed on the start of the prompt, so it dies the moment one early character changes.
+
+So Part 1 causes four things in the rest of the chapter. Output is a guess. Long context gets worse. Speed has two halves. The start of your prompt is valuable.
+
+---
+
+## Part 2 — The API, which is a trick built on flattening
+
+[[02 - Messages, Roles & the Chat API]] is where the machine meets an API. And the API tells you a small lie: that you are sending a chat between named people.
+
+You send a list. `system` for standing rules. `user` for the request. `assistant` for the model's own past replies. `tool` for results your code sent back. Then a **chat template** flattens all of it into the one flat list from Part 1, using **special tokens** as markers:
 
 ```text
 <|im_start|>system
@@ -73,106 +83,138 @@ What is a token?<|im_end|>
 <|im_start|>assistant
 ```
 
-Look at the last line. The prompt deliberately ends on an *open* assistant marker, so plain next-token prediction has nowhere to go except to continue as the assistant. The whole chat experience is that trick. Generation ends when the model predicts the closing marker. Nothing in the machine changed.
+Look at the last line. The prompt ends on an *open* assistant marker on purpose. So plain next-token prediction has nowhere to go except to keep writing as the assistant. The whole chat feeling is that trick. Writing stops when the model predicts the closing marker. Nothing inside the machine changed.
 
-**This is where roles stop being a security feature.** The model obeys the system prompt because fine-tuning rewarded obeying text in that position — not because attention treats those tokens differently. It can't; see Act 1. So two things follow. A long conversation can dilute early instructions, meaning critical rules sometimes need repeating near the end. And any text that *arrives* inside a `user` message, a retrieved chunk, or a tool result still has real influence over the model, including text that says "ignore your previous instructions." That is the entire mechanism of prompt injection, and it's why authorization lives in your code and inside your tools, never in a sentence in the system prompt. Special tokens are single vocabulary IDs rather than literal characters, so a user typing `<|im_end|>` gets tokenized as ordinary text — that's your defence against forged turns, and it's the only structural one you get.
+**This is where roles stop being a safety feature.** The model follows the system prompt because training rewarded following text in that spot. Not because attention treats those tokens as special. It cannot, as Part 1 showed.
 
-**Then there's how generation ends,** which is the most commonly skipped detail in the chapter and the source of the most expensive bug. Four finish reasons: `stop` is normal, `tool_calls` means execute and loop, `content_filter` is a real user-visible outcome, and `length` means you hit `max_tokens` or the context limit and **the output is truncated mid-sentence or mid-JSON with no other signal**. `max_tokens` is a cap, not a target. If your code only checks that a response came back, `length` is exactly how malformed JSON gets written to your database.
+Two things follow from that. A long chat can water down your early rules, so important rules sometimes need repeating near the end. And any text that *arrives* inside a `user` message, a retrieved chunk, or a tool result still has real power over the model. Even text that says "ignore your earlier instructions." That is the whole trick behind prompt injection. It is also why permission checks belong in your code and inside your tools, never in a sentence in the system prompt.
 
-**And the request is stateless.** Each call is independent. What feels like memory is only you re-sending the accumulated array, which is why an agent's input grows every single turn even when the user typed three words. Note how this stacks with Act 1's prefix rule: keep the system prompt and tool schemas first and in a fixed order and the cacheable prefix survives; inject a timestamp into the system prompt and you have just destroyed the cache on every request forever.
+Special tokens are single vocabulary IDs, not the plain characters. So when a user types `<|im_end|>`, it gets turned into normal text. That is your defence against fake turns, and it is the only built-in one you get.
 
----
+**Next, how writing stops.** This is the most skipped detail in the chapter and it causes the most costly bug. There are four finish reasons. `stop` is normal. `tool_calls` means run the tool and loop. `content_filter` is a real outcome your users can see. And `length` means you hit `max_tokens` or the context limit, and **the output was cut off in the middle of a sentence or in the middle of JSON, with no other warning**.
 
-## Act 3 — Scarcity, and the budget you didn't know you owned
+`max_tokens` is a cap, not a goal. If your code only checks that a reply came back, `length` is exactly how broken JSON ends up in your database.
 
-Statelessness plus a finite sequence length gives you [[04 - Context Window]], and the first thing to internalize is that it is **input and output sharing one hard budget**. Reserve room for the reply or the reply gets cut off — which surfaces back in Act 2 as `finish_reason: length`.
+**And every request is stateless.** Each call stands alone. What feels like memory is only you re-sending the whole list again. That is why an agent's input grows every single turn, even when the user typed three words.
 
-Everything competes for that budget: system prompt, tool definitions, conversation history, tool results, retrieved chunks, and the generated output. Two of those behave very differently and mixing them up is a classic mistake. **Tool definitions** are a fixed tax paid on every single call, so keep descriptions tight and expose only the tools this agent needs. **Tool results** are cumulative — they land in history and get re-sent on every later call until you remove them, which is what actually causes overflow. One fat API response or file dump can eat most of a window on its own.
-
-The uncomfortable conclusion is that **context management is application code, not a model feature**. Nothing manages this for you, and that includes the agent frameworks — LangChain doesn't store memory by default either. You own storing the conversation in Redis or Postgres, loading it by conversation ID, appending, calling, and saving. You own trimming and summarizing before you overflow, typically triggering somewhere around 70–80% of the window rather than at the wall. You own isolation too: one model and one agent serve every user, so scoping history to the authenticated owner, filtering retrieval by user, and enforcing permissions inside tools are all your code's job. And note the tension summarization creates with Act 1 — rewriting the history prefix invalidates the prompt cache from that point on, so it's an occasional operation, not a per-turn one.
-
-Then the quality trap, which is the part people learn last. Even when everything *fits*, stuffing the window is not free: cost and latency scale with it on every call, and Act 1's percentage-split attention means detail gets diluted and middles get ignored. "It fits" is not the standard. **Relevant** is the standard.
-
-**Which is exactly the problem [[05 - Embeddings]] exists to solve.** If you can't send everything, you need to send only the parts that matter — and you can't find those with `LIKE '%car%'`, because "automobile" won't match, and you can't ask the chat model to go look, because searching millions of documents is precisely what it has no way to do. So an embedding model converts text into a fixed-length vector where similar *meaning* lands in nearby positions, turning "search by meaning" into arithmetic on vectors.
-
-The confusion worth clearing up: the word "embedding" names two different things in this chapter. Inside the chat model, every token becomes a vector automatically at the input layer — that's from Act 1, it's internal, and you never call it. The standalone embedding model is a separate model you call yourself, as a search tool. Same underlying idea, completely different role in your architecture.
-
-Two rules carry real operational weight. **Order of operations:** documents are embedded once at ingestion and stored, queries are embedded at request time and compared, and retrieval finishes *before* anything enters the context window. **One model everywhere:** each embedding model has its own private numeric space, and the numbers only mean anything relative to other vectors from that same model. Embed documents with Model A and queries with Model B — or with a newer version of A — and you're measuring distance between coordinate systems that were never aligned. It throws no error. Similarity scores just quietly become noise. Store the model and version alongside your vectors, and re-embed everything if you change. Same silent-failure shape applies to the distance metric: use whichever one the model's docs specify, because cosine, dot product, and Euclidean aren't interchangeable when a model was tuned for one of them.
+See how this stacks with Part 1's rule about the start of the prompt. Keep the system prompt and tool schemas first, in a fixed order, and the cached part survives. Put a timestamp in your system prompt and you just killed that cache on every request, forever.
 
 ---
 
-## Act 4 — Choosing which machine runs the request
+## Part 3 — Not enough room, and a budget you did not know you owned
 
-By now the request is assembled and trimmed, and [[06 - Model Families & Tradeoffs]] asks which model should receive it. Every axis here is a repricing of something already established.
+Stateless calls plus a fixed sequence length gives you [[04 - Context Window]]. The first thing to get straight: it is **input and output sharing one hard budget**. Leave room for the reply or the reply gets cut off. Which shows up back in Part 2 as `finish_reason: length`.
 
-**Reasoning versus fast** is the clearest example. A reasoning model is not a different architecture — it's the same transformer generating a scratchpad of intermediate steps first, then answering with that scratchpad in context. Which means those thinking tokens are generated one at a time like any output, are billed as output, and are slow for exactly the reason Act 1 gave. "Better answers on multi-step problems" is real, and it has a line item.
+Everything fights for that budget. System prompt. Tool definitions. Chat history. Tool results. Retrieved chunks. And the output itself.
 
-**Large versus small** trades breadth and reasoning against cost and latency, and the failure direction is asymmetric in a way that matters: an oversized model wastes money loudly, while an undersized model fails *quietly* — a wrong tool argument, a subtly bad extraction, valid-looking JSON with the wrong values in it. No exception is raised. Only validation catches it.
+Two of those act very differently, and mixing them up is a common mistake. **Tool definitions** are a fixed tax you pay on every single call, so keep the descriptions short and only show the tools this agent needs. **Tool results** pile up. They go into history and get re-sent on every later call until you remove them. They are what actually causes overflow. One big API response or file dump can eat most of the window by itself.
 
-**Open-weight versus API-hosted** is really a question about who owns the infrastructure. Self-hosting means the weights, the GPUs, the scaling, the uptime, and the KV-cache memory ceiling from Act 1 are yours — worth it at high steady volume or under data-residency constraints, and expensive at low spiky volume. It also hands you a responsibility hosted APIs quietly absorb: applying the right **chat template** from Act 2. Get it wrong and there's no error, just mysteriously worse output.
+Here is the part people do not like: **managing context is your code's job, not a model feature.** Nothing does it for you, and that includes the agent frameworks. LangChain does not store memory by default either. You store the chat in Redis or Postgres. You load it by conversation ID, add the new message, call the model, and save the reply. You trim or summarize before you overflow, usually around 70–80% of the window instead of waiting for the wall.
 
-The practical shape of all this is the **router**: a cheap component that classifies incoming work and sends it to the tier it actually needs, so cost and latency track task difficulty instead of defaulting to the largest model for everything. And the framing to keep is that latency, cost, and quality are three corners and you get two — high quality plus cheap is available, it just costs you latency, which is what batch and offline processing are for.
+Keeping users apart is also your job. One model and one agent serve everybody. So you scope history to the logged-in owner, filter retrieval by user, and check permissions inside your tools.
 
----
+And notice the clash with Part 1: summarizing rewrites the start of your history, which kills the prompt cache from that point on. So summarize once in a while, not every turn.
 
-## Act 5 — Getting one token out, and getting a usable shape out
+Then there is the quality trap, which people learn last. Even when everything *fits*, filling the window is not free. Cost and speed get worse on every call. And because attention shares out 100%, details get watered down and middles get skipped. "It fits" is not the test. **"It is relevant"** is the test.
 
-The tokens are in, the model is chosen, and now the last layer produces a **logit** for every token in the vocabulary, normalized into a probability distribution. [[07 - Determinism & Sampling]] is about the fact that something now has to *pick*.
+**This is exactly the problem [[05 - Embeddings]] solves.** If you cannot send everything, you need to send only the parts that matter. You cannot find those with `LIKE '%car%'`, because "automobile" will not match. And you cannot ask the chat model to go look, because searching millions of documents is the one thing it cannot do.
 
-The crucial framing: sampling parameters act entirely **after** the model has done its thinking. They don't change what it knows or predicts, only how one token gets drawn from the distribution it produced. **Temperature** reshapes that distribution before drawing — low sharpens it toward the top token, high flattens it and gives unlikely tokens a real chance, and 0 is greedy decoding. **Top-k** keeps the k most likely candidates and discards the tail. **Top-p** does the same job with a dynamic cutoff, keeping the smallest set of tokens whose probabilities sum to p, so the candidate pool shrinks when the model is confident and widens when it isn't.
+So an embedding model turns text into a fixed-length list of numbers, where similar *meaning* lands close together. That turns "search by meaning" into simple math on those numbers.
 
-Then the detail that should change how you write code: **temperature 0 is not a guarantee.** Floating-point non-determinism on GPUs and batching effects on provider infrastructure mean identical inputs can still diverge. It reduces variance. It does not promise reproducibility, and some models don't expose these knobs at all. So low temperature is a way to make validation succeed more often, never a substitute for validating.
+One mix-up worth clearing up: "embedding" means two different things in this chapter. Inside the chat model, every token becomes numbers automatically at the input layer. That is from Part 1, it is internal, and you never call it. The standalone embedding model is a separate model you call yourself, as a search tool. Same basic idea, totally different job in your system.
 
-**This is the exact reason [[08 - Structured Output]] can't work by asking politely.** If the next token is drawn from a distribution, then "please reply in JSON only" is a nudge on probabilities, not a constraint — and a nudge fails on a schedule, which is how you get one broken parse every fifty calls. The three approaches are really three depths of constraint:
+Two rules here really matter in practice.
 
-1. **JSON mode** raises the odds of syntactically valid JSON, but guarantees nothing about *your* fields being present or correctly typed.
-2. **Schema-based structured output and function calling** commit the model to a declared shape with named fields, types, and required-ness. This is what production mostly uses.
-3. **Grammar-constrained decoding** goes all the way down to the mechanism from this Act: at each step, any token that would break the format is *removed from the distribution before sampling*. That's why it's the only approach that can't produce structurally invalid output — it edits the distribution instead of hoping for it. It's typically a self-hosted capability.
+**Order of steps:** documents get embedded once when you ingest them and the numbers get stored. Queries get embedded at request time and compared. Retrieval finishes *before* anything goes into the context window.
 
-And here is the connection that quietly sets up the rest of the roadmap: **tool calling is not a new model capability.** It is structured output plus a convention. The model never executes anything. It emits a structured object naming a function and its arguments; your backend reads that, decides whether to run it, runs it, and appends the result as a `tool` message from Act 2. The model "recognizes" its own earlier tool call on the next turn only because that text is sitting in the array you re-sent. Drop the `assistant` message that requested the tool while replaying history and you'll be left with an orphaned `tool` result that providers reject.
+**One model everywhere:** each embedding model has its own private number space. The numbers only mean something next to other numbers from that same model. Embed your documents with Model A and your queries with Model B, or even a newer version of A, and you are measuring distance between two number spaces that were never lined up. It throws no error. The similarity scores just quietly turn into noise.
 
-Which is why the dangerous failure mode in agents is not a crash. A wrong-but-well-formed tool argument passes every parser, does the wrong thing, and surfaces as a confusing error three steps later.
+So store the model name and version next to your vectors, and re-embed everything if you switch. The distance metric fails the same quiet way. Use the one the model's docs tell you to, because cosine, dot product, and Euclidean are not swappable when a model was tuned for one of them.
 
 ---
 
-## Act 6 — Widening the pipe
+## Part 4 — Picking which machine runs the request
 
-[[09 - Multi-modality]] extends the input and output types without changing any of the above. Images become patches, audio becomes a sequence of representations, and both end up as **a numeric sequence the transformer processes** — the same shape text tokens end up in, which is why nothing in Acts 1 through 5 needs rewriting.
+By now the request is built and trimmed. [[06 - Model Families & Tradeoffs]] asks which model should get it. Every choice here is just a new price tag on something you already know.
 
-The distinction to hold precisely is **input modality versus output modality**, because they are separate decisions and support is lopsided. Plenty of models read images fluently and can still only reply in text. Real generation of images or audio is usually a different, specialized model.
+**Reasoning vs fast** is the clearest one. A reasoning model is not a different design. It is the same transformer writing a scratchpad of steps first, then answering with that scratchpad in its context. So those thinking tokens are written one at a time, are billed as output, and are slow for the exact reason Part 1 gave. "Better answers on multi-step problems" is real, and it shows up on the bill.
 
-Which means the common "multi-modal" system is not one model doing everything — it's Act 5 again in costume. The LLM produces structured output saying `generate_image` with a prompt; your backend calls a diffusion API; your backend attaches the result to the response. Same division of labour as every tool call: **the model decides and structures, your code executes.** The LLM never touches the other model.
+**Large vs small** trades knowledge and reasoning against cost and speed. The way each one fails is not the same, and that matters. A model that is too big wastes money loudly. A model that is too small fails *quietly* — a wrong tool argument, a slightly bad extraction, JSON that looks fine but holds the wrong values. Nothing crashes. Only validation catches it.
 
-The Act 3 budget still applies too, with worse exchange rates: an image or audio clip consumes far more context than the same content as text, costs more, and is slower. So don't send a picture of text you could have extracted, and don't assume "one image" is cheap.
+**Open-weight vs API-hosted** is really about who owns the servers. Self-hosting means the weights, the GPUs, the scaling, the uptime, and that KV cache memory limit from Part 1 are all yours. Worth it at high steady volume, or when data must stay in-house. Expensive at low or spiky volume. It also hands you a job that hosted APIs quietly do for you: applying the right **chat template** from Part 2. Get it wrong and there is no error, just output that is worse for no clear reason.
+
+The practical answer to all of this is a **router**. A cheap piece of code looks at the incoming task and sends it to the tier it actually needs. So cost and speed follow how hard the task is, instead of always hitting the biggest model.
+
+And the frame to keep: speed, cost, and quality are three corners, and you get two. High quality plus cheap is real. It just costs you speed, which is what batch and offline jobs are for.
 
 ---
 
-## The loop that closes the chapter
+## Part 5 — Getting one token out, and getting a shape you can use
 
-Every topic is visible in a single turn of an agent. Follow one:
+The tokens are in and the model is picked. Now the last layer gives a **logit** (a score) to every token in the vocabulary, and those scores become chances that add up to 1. [[07 - Determinism & Sampling]] is about the fact that something now has to *pick one*.
 
-1. Your code loads the conversation from your own database, because the model kept nothing — **[[04 - Context Window]]**, **[[02 - Messages, Roles & the Chat API]]**.
-2. It embeds the user's question, searches the vector index, and pulls the three most relevant chunks instead of the whole corpus — **[[05 - Embeddings]]**.
-3. It assembles the array with stable content first — system prompt, tool schemas — so the cacheable prefix survives, then history, then the retrieved chunks and the new message — **[[02 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
+The key idea: sampling settings act **after** the model has done its thinking. They do not change what it knows or what it predicted. They only change how one token gets pulled out of the list of chances it made.
+
+**Temperature** reshapes that list before the pick. Low makes it sharp, so the top token wins. High makes it flat, so unlikely tokens get a real shot. Zero is greedy — always take the top one. **Top-k** keeps the k most likely tokens and throws away the tail. **Top-p** does the same job with a moving cutoff: keep the smallest group of top tokens whose chances add up to p. So the group shrinks when the model is sure and grows when it is not.
+
+Then the detail that should change your code: **temperature 0 is not a promise.** Floating-point math on GPUs and batching on the provider's side mean the same input can still give a different output. It lowers how much things vary. It does not promise the same answer twice, and some models do not even let you set these knobs.
+
+So low temperature is a way to make your validation pass more often. It is never a replacement for validating.
+
+**This is exactly why [[08 - Structured Output]] cannot work by asking nicely.** If the next token is pulled from a list of chances, then "please reply in JSON only" is a nudge on those chances, not a rule. And a nudge fails on a schedule. That is how you get one broken parse every fifty calls.
+
+The three approaches are really three depths of control:
+
+1. **JSON mode** makes valid JSON syntax much more likely. It promises nothing about *your* fields being there or having the right types.
+2. **Schema-based structured output and function calling** lock the model to a shape you declared, with named fields, types, and which ones are required. This is what most production systems use.
+3. **Grammar-constrained decoding** goes all the way down to the mechanism in this part. At each step, any token that would break the format is *removed from the list of chances before the pick*. That is why it is the only one that cannot produce a broken shape. It changes the chances instead of hoping. It is usually a self-hosted feature.
+
+And here is the link that sets up the rest of the roadmap: **tool calling is not a new model skill.** It is structured output plus an agreement. The model never runs anything. It writes a structured object naming a function and its arguments. Your backend reads it, decides whether to run it, runs it, and adds the result as a `tool` message from Part 2.
+
+On the next turn the model "remembers" its own tool call only because that text is sitting in the list you re-sent. Drop the `assistant` message that asked for the tool while replaying history and you are left with a `tool` result attached to nothing, which providers reject.
+
+Which is why the dangerous failure in agents is not a crash. A tool argument that is wrong but well-formed passes every parser, does the wrong thing, and shows up as a confusing error three steps later.
+
+---
+
+## Part 6 — Making the pipe wider
+
+[[09 - Multi-modality]] adds more input and output types without changing anything above. Images become patches. Audio becomes a sequence of representations. Both end up as **a list of numbers the transformer can process** — the same thing text tokens end up as. That is why nothing in Parts 1 to 5 needs rewriting.
+
+The line to hold clearly is **input type vs output type**. They are separate choices, and support is uneven. Plenty of models read images well and can still only reply in text. Really generating images or audio is usually a different, specialized model.
+
+So the usual "multi-modal" system is not one model doing everything. It is Part 5 again in a costume. The LLM writes structured output saying `generate_image` with a prompt. Your backend calls an image API. Your backend attaches the result to the reply. Same split as every tool call: **the model decides and formats, your code does the work.** The LLM never touches the other model.
+
+The Part 3 budget still applies, at a worse rate. An image or audio clip eats far more context than the same thing as text, costs more, and is slower. So do not send a picture of text you could have pulled out yourself, and do not assume "just one image" is cheap.
+
+---
+
+## The loop that ties the chapter together
+
+Every topic shows up in a single turn of an agent. Follow one:
+
+1. Your code loads the chat from your own database, because the model kept nothing — **[[04 - Context Window]]**, **[[02 - Messages, Roles & the Chat API]]**.
+2. It embeds the user's question, searches the vector index, and pulls the three most relevant chunks instead of the whole set — **[[05 - Embeddings]]**.
+3. It builds the list with stable content first — system prompt, tool schemas — so the cached part survives, then history, then the chunks and the new message — **[[02 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
 4. A router decides this one needs the reasoning tier, and the budget is checked with *that* model's tokenizer — **[[06 - Model Families & Tradeoffs]]**, **[[03 - Tokens & Tokenization]]**.
-5. The template flattens everything into one sequence ending on an open assistant marker; prefill builds the KV cache; time-to-first-token elapses — **[[02 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
-6. Decode runs, sampling one token per step from a distribution constrained to the tool schema — **[[07 - Determinism & Sampling]]**, **[[08 - Structured Output]]**.
-7. It comes back `finish_reason: tool_calls`, so your code validates the arguments, executes the tool, truncates the result so it can't swallow the window, and appends it — **[[02 - Messages, Roles & the Chat API]]**, **[[04 - Context Window]]**.
-8. Go to step 1. The array is now longer, the input bill is higher, and you're closer to the summarization threshold than you were — **[[03 - Tokens & Tokenization]]**, **[[04 - Context Window]]**.
+5. The template flattens it all into one list ending on an open assistant marker. Prefill builds the KV cache. Time-to-first-token passes — **[[02 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
+6. Decode runs, picking one token per step from a list of chances that was cut down to fit the tool schema — **[[07 - Determinism & Sampling]]**, **[[08 - Structured Output]]**.
+7. It comes back as `finish_reason: tool_calls`. So your code checks the arguments, runs the tool, cuts the result down so it cannot eat the window, and adds it to the list — **[[02 - Messages, Roles & the Chat API]]**, **[[04 - Context Window]]**.
+8. Go back to step 1. The list is longer now, the input bill is higher, and you are closer to needing to summarize — **[[03 - Tokens & Tokenization]]**, **[[04 - Context Window]]**.
 
-That loop is the whole chapter. Everything after this chapter is a refinement of one of those eight steps.
+That loop is the whole chapter. Everything after this chapter just improves one of those eight steps.
 
 ---
 
-## The four laws, and what each one actually costs you
+## The four rules, and what each one costs you
 
-**1. It is stateless.** Conversation state is your database, your schema, your isolation bug. Memory is a feature you build, not one you enable — and provider prompt caching is not memory, it only makes re-sending cheaper.
+**1. It is stateless.** Chat state is your database, your schema, and your isolation bug. Memory is something you build, not something you switch on. And provider prompt caching is not memory — it only makes re-sending cheaper.
 
-**2. Tokens are the currency.** Cost, context limits, rate limits, and latency are all denominated in tokens, never characters or words, and always counted by *that model's* tokenizer. Output is priced higher and generated slower than input, reasoning tokens bill as output, and in a loop today's output becomes tomorrow's re-sent input.
+**2. Tokens are the money.** Cost, context limits, rate limits, and speed are all counted in tokens. Never letters, never words. And always counted with *that model's* tokenizer. Output is priced higher and written slower than input. Reasoning tokens bill as output. And in a loop, today's output becomes tomorrow's re-sent input.
 
-**3. It is probabilistic, not retrieved.** Fluent is not correct, and identical inputs are not promised to give identical outputs. Every consequence in this chapter — hallucination, broken JSON, flaky extraction, temperature-0 drift — is this one law showing up in a different place. Validate; don't ask nicely.
+**3. It guesses, it does not look up.** Smooth is not the same as correct, and the same input is not promised to give the same output. Every problem in this chapter — hallucination, broken JSON, flaky extraction, temperature-0 drift — is this one rule showing up somewhere new. Validate. Do not ask nicely.
 
-**4. Roles are convention, not enforcement.** The model follows the system prompt because training taught it to, which is exactly why injected text can override it. Trust is a property of where content *came from*, not of the role field it arrived in.
+**4. Roles are an agreement, not a rule.** The model follows the system prompt because training taught it to, which is exactly why injected text can beat it. Trust comes from where the content *came from*, not from the role field it showed up in.
 
 ---
 
@@ -180,40 +222,40 @@ That loop is the whole chapter. Everything after this chapter is a refinement of
 
 | # | Topic | If you remember one thing |
 |---|-------|---------------------------|
-| 01 | [[01 - How LLMs Work]] | Frozen weights predicting one token at a time; prefill is parallel, decode is sequential, old K/V is cacheable. |
-| 02 | [[02 - Messages, Roles & the Chat API]] | The array is flattened into one string ending on an open assistant tag; branch on the finish reason before parsing. |
-| 03 | [[03 - Tokens & Tokenization]] | Count with that model's tokenizer; output costs more than input and gets re-sent as input next turn. |
-| 04 | [[04 - Context Window]] | Input and output share one hard budget, and managing it is application code. |
-| 05 | [[05 - Embeddings]] | One embedding model for documents and queries, forever; mismatches fail silently, not loudly. |
-| 06 | [[06 - Model Families & Tradeoffs]] | Route per request; undersized models fail quietly, which is worse than failing expensively. |
-| 07 | [[07 - Determinism & Sampling]] | Sampling acts after the model thinks; temperature 0 reduces variance without guaranteeing it. |
-| 08 | [[08 - Structured Output]] | Constrain the distribution at decode time, then validate anyway — tool calling is just this. |
-| 09 | [[09 - Multi-modality]] | Everything becomes a numeric sequence; input and output modalities are separate decisions. |
+| 01 | [[01 - How LLMs Work]] | Frozen weights guessing one token at a time. Prefill is parallel, decode is not, old K/V can be cached. |
+| 02 | [[02 - Messages, Roles & the Chat API]] | The list is flattened into one string ending on an open assistant tag. Check the finish reason before parsing. |
+| 03 | [[03 - Tokens & Tokenization]] | Count with that model's tokenizer. Output costs more than input, then gets re-sent as input next turn. |
+| 04 | [[04 - Context Window]] | Input and output share one hard budget, and managing it is your code's job. |
+| 05 | [[05 - Embeddings]] | One embedding model for documents and queries, always. A mismatch fails quietly, not loudly. |
+| 06 | [[06 - Model Families & Tradeoffs]] | Route each request. A model that is too small fails quietly, which is worse than failing expensively. |
+| 07 | [[07 - Determinism & Sampling]] | Sampling acts after the model thinks. Temperature 0 lowers variety without promising it. |
+| 08 | [[08 - Structured Output]] | Cut down the choices while it writes, then validate anyway. Tool calling is just this. |
+| 09 | [[09 - Multi-modality]] | Everything turns into a list of numbers. Input types and output types are separate choices. |
 
 ---
 
 ## Check yourself
 
-Answer these in prose, from memory. Each one requires two or more topics, which is the point.
+Answer these out loud, from memory. Each one needs two or more topics, which is the point.
 
 - An agent's input bill grows every turn even when the user types one short sentence. Explain why, using statelessness and tokens.
-- A user pastes a document containing "ignore all previous instructions," and it works. Explain the mechanism using attention and chat templates — not using the word "jailbreak."
-- Your extraction endpoint returns broken JSON roughly once every fifty calls. Name three separate causes from this chapter that all produce that symptom, and say how you'd tell them apart.
-- You upgrade to a newer version of your embedding model and retrieval quality collapses with no errors in any log. What happened, and why was there nothing to catch?
-- Why is time-to-first-token a different engineering problem from tokens-per-second, and which one does prompt caching help?
-- Your system prompt includes the current timestamp for freshness. Explain the full cost of that decision.
+- A user pastes a document that says "ignore all previous instructions," and it works. Explain how, using attention and chat templates — without using the word "jailbreak."
+- Your extraction endpoint returns broken JSON about once every fifty calls. Name three different causes from this chapter that all look like that, and say how you would tell them apart.
+- You move to a newer version of your embedding model and retrieval quality falls apart, with no errors in any log. What happened, and why was there nothing to catch?
+- Why is time-to-first-token a different problem from tokens-per-second, and which one does prompt caching help?
+- Your system prompt includes the current timestamp so it stays fresh. Explain the full cost of that choice.
 
 ---
 
 ## What the next chapters build on this
 
-- **[[Prompt Engineering]]** — everything you write lands in Act 2's message array, is priced by Act 3, and is read by Act 1's uniform attention. That last part is why instruction placement changes behaviour.
-- **[[RAG]]** — Act 3 built out properly: chunking, indexing, ranking, and evaluating the retrieval step, driven by the same budget-and-dilution pressure.
-- **[[Agentic Systems]]** — the closing loop above, hardened. Tool design, validation, retries, and recovering from the quiet wrong-argument failures from Act 5.
-- **[[Context Engineering]]** — Act 3 as a discipline: compression, summarization policy, memory tiers, and caching that survives contact with real traffic.
+- **[[Prompt Engineering]]** — everything you write goes into Part 2's message list, is priced by Part 3, and is read by Part 1's flat attention. That last part is why *where* you put an instruction changes the behaviour.
+- **[[RAG]]** — Part 3 built out properly. Chunking, indexing, ranking, and testing the retrieval step, driven by the same "not enough room and detail gets watered down" pressure.
+- **[[Agentic Systems]]** — the loop above, made tough. Tool design, validation, retries, and recovering from the quiet wrong-argument failures from Part 5.
+- **[[Context Engineering]]** — Part 3 as a real skill. Compression, when to summarize, memory tiers, and caching that survives real traffic.
 
 ---
 
 ## My notes / open questions
 
-<!-- After building something real, come back and note which of the four laws actually bit you, and where the explanation above turned out to be too clean. -->
+<!-- After building something real, come back and note which of the four rules actually bit you, and where the explanation above turned out to be too tidy. -->
