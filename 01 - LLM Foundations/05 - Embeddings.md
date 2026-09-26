@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 04
+topic: 05
 tags:
   - agentic-ai
   - ch/01
 ---
-# 04 - Embeddings
+# 05 - Embeddings
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 04 - Embeddings  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 05 - Embeddings  
 > **Type:** Concept  
-> **Prev:** [[03 - Context Window]] | **Next:** [[05 - Model Families & Tradeoffs]]
+> **Prev:** [[04 - Context Window]] | **Next:** [[06 - Model Families & Tradeoffs]]
 
 ---
 
@@ -24,7 +24,7 @@ An embedding is a piece of text (or image) turned into a fixed-length vector of 
 
 Two different "embedding" things exist, and it's worth separating them:
 
-- **Inside the chat model itself (every request):** before the transformer can process text, each token becomes a vector — this happens automatically at the start of the model, just to turn text into numbers it can compute with (see [[01 - How LLMs Work]], [[02 - Tokens & Tokenization]]). You never call this separately.
+- **Inside the chat model itself (every request):** before the transformer can process text, each token becomes a vector — this happens automatically at the start of the model, just to turn text into numbers it can compute with (see [[01 - How LLMs Work]], [[03 - Tokens & Tokenization]]). You never call this separately.
 - **The standalone embedding model (RAG/search):** a different model you call yourself, used to solve a search problem the chat model can't:
     - A normal DB query (`LIKE '%car%'`) only matches exact words, not meaning ("automobile" won't match "car").
     - The chat model can only use what's already in its context window — it has no way to search across millions of documents to find what's relevant.
@@ -51,7 +51,7 @@ Two different "embedding" things exist, and it's worth separating them:
     - **Dot product:** multiply matching components and sum them; related to cosine but also affected by vector magnitude (length), not just direction. Some providers recommend it because their vectors are pre-normalized, making it equivalent to cosine but faster to compute.
     - **Euclidean distance:** straight-line distance between two points; smaller = more similar. Less common for text search than cosine.
     - **Rule:** use whichever metric the embedding model's docs recommend — models are tuned assuming one specific metric. Mixing the wrong one gives poor, quietly-wrong results (see Failure modes).
-- **Vector database / index:** stores embeddings and finds the nearest ones fast (e.g. pgvector on Postgres, or a dedicated vector DB). This is what enables RAG at scale ([[03 - Context Window]] covers what happens to the retrieved chunks once fetched).
+- **Vector database / index:** stores embeddings and finds the nearest ones fast (e.g. pgvector on Postgres, or a dedicated vector DB). This is what enables RAG at scale ([[04 - Context Window]] covers what happens to the retrieved chunks once fetched).
 - **Dimensions:** the vector's length is fixed per model; more dimensions can capture more nuance but cost more storage and compute.
 
 ## Examples / Code / Config
@@ -86,8 +86,8 @@ embed("banana")     → [-0.7, 0.33, 0.02, ...]    → far
 
 ## Related topics
 
-- [[03 - Context Window]]
-- [[05 - Model Families & Tradeoffs]]
+- [[04 - Context Window]]
+- [[06 - Model Families & Tradeoffs]]
 
 ## Resources
 

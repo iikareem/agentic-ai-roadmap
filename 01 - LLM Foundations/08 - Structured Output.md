@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 07
+topic: 08
 tags:
   - agentic-ai
   - ch/01
 ---
-# 07 - Structured Output
+# 08 - Structured Output
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 07 - Structured Output  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 08 - Structured Output  
 > **Type:** Concept  
-> **Prev:** [[06 - Determinism & Sampling]] | **Next:** [[08 - Multi-modality]]
+> **Prev:** [[07 - Determinism & Sampling]] | **Next:** [[09 - Multi-modality]]
 
 ---
 
@@ -156,7 +156,7 @@ Your backend code then actually calls the real search_flights function with thes
 
 ## Related topics
 
-- [[04 - Embeddings]]
+- [[05 - Embeddings]]
 - [[Agentic Systems]]
 - [[Evaluation and Testing]]
 

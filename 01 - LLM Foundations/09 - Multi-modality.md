@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 08
+topic: 09
 tags:
   - agentic-ai
   - ch/01
 ---
-# 08 - Multi-modality
+# 09 - Multi-modality
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 08 - Multi-modality  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 09 - Multi-modality  
 > **Type:** Concept  
-> **Prev:** [[07 - Structured Output]] | **Next:** —
+> **Prev:** [[08 - Structured Output]] | **Next:** —
 
 ---
 
@@ -88,7 +88,7 @@ Model output (text):
 
 Most LLMs can **read** images (multi-modal input) but cannot **generate** images themselves — they're text-out only. So if a user asks for an image, the LLM alone cannot produce one. A second, specialized model (an image-generation model) is needed, and the two are chained together by your backend.
 
-**Step 1 — the LLM "decides" what's needed** This is just the LLM doing what it already does well: understanding the request and producing structured output (same idea as tool calling from [[07 - Structured Output]]). If a user says _"make me a picture of a mountain sunset for my blog post,"_ the LLM doesn't generate the image — it outputs a decision + description, e.g.:
+**Step 1 — the LLM "decides" what's needed** This is just the LLM doing what it already does well: understanding the request and producing structured output (same idea as tool calling from [[08 - Structured Output]]). If a user says _"make me a picture of a mountain sunset for my blog post,"_ the LLM doesn't generate the image — it outputs a decision + description, e.g.:
 
 ```json
 {
@@ -149,8 +149,8 @@ It's not "deciding" in a human sense — it's predicting that, given the convers
 ## Related topics
 
 - [[01 - How LLMs Work]]
-- [[03 - Context Window]]
-- [[07 - Structured Output]]
+- [[04 - Context Window]]
+- [[08 - Structured Output]]
 
 ---
 

@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 06
+topic: 07
 tags:
   - agentic-ai
   - ch/01
 ---
-# 06 - Determinism & Sampling
+# 07 - Determinism & Sampling
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 06 - Determinism & Sampling  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 07 - Determinism & Sampling  
 > **Type:** Concept  
-> **Prev:** [[05 - Model Families & Tradeoffs]] | **Next:** [[07 - Structured Output]]
+> **Prev:** [[06 - Model Families & Tradeoffs]] | **Next:** [[08 - Structured Output]]
 
 ---
 
@@ -86,8 +86,8 @@ top_p = 0.9              → dynamic cutoff at 90% cumulative probability
 
 ## Related topics
 
-- [[05 - Model Families & Tradeoffs]]
-- [[07 - Structured Output]]
+- [[06 - Model Families & Tradeoffs]]
+- [[08 - Structured Output]]
 
 ## Resources
 

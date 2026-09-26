@@ -37,13 +37,14 @@ A good habit: for any new feature, ask — retrieval strategy, context budget, e
 The "physics" you build on — enough conceptual depth to reason about model behavior, cost, and limits.
 
 - [[01 - How LLMs Work]]
-- [[02 - Tokens & Tokenization]]
-- [[03 - Context Window]]
-- [[04 - Embeddings]]
-- [[05 - Model Families & Tradeoffs]]
-- [[06 - Determinism & Sampling]]
-- [[07 - Structured Output]]
-- [[08 - Multi-modality]]
+- [[02 - Messages, Roles & the Chat API]]
+- [[03 - Tokens & Tokenization]]
+- [[04 - Context Window]]
+- [[05 - Embeddings]]
+- [[06 - Model Families & Tradeoffs]]
+- [[07 - Determinism & Sampling]]
+- [[08 - Structured Output]]
+- [[09 - Multi-modality]]
 
 ### 02. [[Prompt Engineering]]
 

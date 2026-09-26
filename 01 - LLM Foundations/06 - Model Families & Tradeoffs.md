@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 05
+topic: 06
 tags:
   - agentic-ai
   - ch/01
 ---
-# 05 - Model Families & Tradeoffs
+# 06 - Model Families & Tradeoffs
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 05 - Model Families & Tradeoffs  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 06 - Model Families & Tradeoffs  
 > **Type:** Comparison  
-> **Prev:** [[04 - Embeddings]] | **Next:** [[06 - Determinism & Sampling]]
+> **Prev:** [[05 - Embeddings]] | **Next:** [[07 - Determinism & Sampling]]
 
 ---
 
@@ -100,8 +100,8 @@ Router pattern:
 
 ## Related topics
 
-- [[04 - Embeddings]]
-- [[06 - Determinism & Sampling]]
+- [[05 - Embeddings]]
+- [[07 - Determinism & Sampling]]
 
 ## Resources
 
