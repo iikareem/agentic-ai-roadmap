@@ -40,12 +40,12 @@ It did not memorize a database of facts. It learned patterns of language and str
 
 **Inference vs training on your data** — easy to mix up:
 
-| What you do | Do weights change? | What actually happens |
-|-------------|--------------------|------------------------|
-| Normal chat / completions API | **No** | Weights stay frozen. Your message is only context for *this* request. |
-| Put docs / examples in the prompt (or RAG) | **No** | "In-context" use of your data for this call only. Next call forgets unless you send it again. |
-| **Fine-tune** (or LoRA / continued training) on your dataset | **Yes** | A separate training job updates weights (or adapters). You then call that new model. |
-| Provider uses logs to train a *future* model (policy / opt-in) | Later, for a new version | Not live learning in your session. Check the vendor's data-use terms. |
+| What you do                                                    | Do weights change?       | What actually happens                                                                         |
+| -------------------------------------------------------------- | ------------------------ | --------------------------------------------------------------------------------------------- |
+| Normal chat / completions API                                  | **No**                   | Weights stay frozen. Your message is only context for *this* request.                         |
+| Put docs / examples in the prompt (or RAG)                     | **No**                   | "In-context" use of your data for this call only. Next call forgets unless you send it again. |
+| **Fine-tune** (or LoRA / continued training) on your dataset   | **Yes**                  | A separate training job updates weights (or adapters). You then call that new model.          |
+| Provider uses logs to train a *future* model (policy / opt-in) | Later, for a new version | Not live learning in your session. Check the vendor's data-use terms.                         |
 
 So: the model *can* be trained on your data — that is fine-tuning. A normal API call does **not** do that. For private/recent facts without fine-tuning, put them in the prompt or use RAG ([[01 - Why RAG Exists]]).
 
