@@ -10,7 +10,7 @@ tags:
 
 > **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 01 - How LLMs Work  
 > **Type:** Concept  
-> **Prev:** — | **Next:** [[02 - Messages, Roles & the Chat API]]
+> **Prev:** — | **Next:** [[02 - Transformers, Explained in Order]]
 
 ---
 
@@ -24,7 +24,7 @@ An LLM is trained to guess the next token from huge amounts of text. At **infere
 
 Without this mental model, the API feels like magic. Once you see "trained to predict the next token from patterns," hallucinations, streaming, caching, and the need for RAG stop being mysterious.
 
-Billing and token counts live in [[03 - Tokens & Tokenization]]. This note is about the mechanics.
+Billing and token counts live in [[04 - Tokens & Tokenization]]. This note is about the mechanics.
 
 ---
 
@@ -53,7 +53,7 @@ So: the model *can* be trained on your data — that is fine-tuning. A normal AP
 
 ### 2. Input — what happens when you send a prompt
 
-You send text (system prompt, tools, history, user message). Before the model runs, text becomes token IDs — that step is [[03 - Tokens & Tokenization]]. From IDs onward:
+You send text (system prompt, tools, history, user message). Before the model runs, text becomes token IDs — that step is [[04 - Tokens & Tokenization]]. From IDs onward:
 
 ```text
 token IDs → embedding lookup → vectors (+ position) → transformer layers
@@ -61,7 +61,7 @@ token IDs → embedding lookup → vectors (+ position) → transformer layers
 
 - **Embedding:** the ID is a row number in a table inside the LLM; that row is the token's vector (learned in training).
 - **Position:** added so order matters ("dog bites man" ≠ "man bites dog").
-- Search / RAG embeddings are a different thing: [[05 - Embeddings]].
+- Search / RAG embeddings are a different thing: [[06 - Embeddings]].
 
 A **transformer** reads the whole sequence at once — every token can connect to every other token in one pass. That is why distant words can still link.
 
@@ -146,7 +146,7 @@ How the pick is shaped (does not change the model):
 | **Top-k** | Keep only the *k* most likely, then pick. | Cap long-tail noise. |
 | **Top-p** | Keep the smallest set whose probs sum to *p*, then pick. | Soft version of top-k. |
 
-Even at temperature `0`, outputs can differ slightly — always validate. Full detail: [[07 - Determinism & Sampling]].
+Even at temperature `0`, outputs can differ slightly — always validate. Full detail: [[08 - Determinism & Sampling]].
 
 Only the last layer's output is used to pick the token.
 
@@ -179,7 +179,7 @@ Step 3 (decode):  same; cache grows by one token
 
 **Price:** GPU memory. Cache grows with tokens × layers. Longer context → bigger cache → fewer concurrent users on self-hosted serving.
 
-**Prompt caching** (provider feature, same idea): stable prefixes (system prompt, tools) reused across calls. Put that text **at the start**. Billing: [[03 - Tokens & Tokenization]]. Mechanics: [[06 - Prompt Caching]].
+**Prompt caching** (provider feature, same idea): stable prefixes (system prompt, tools) reused across calls. Put that text **at the start**. Billing: [[04 - Tokens & Tokenization]]. Mechanics: [[06 - Prompt Caching]].
 
 ---
 
@@ -205,7 +205,7 @@ POST /chat/completions
   usage : input_tokens, output_tokens, cached_tokens
 ```
 
-Streaming = decode. Cache-hit counters = KV / prompt caching. Money from those counts: [[03 - Tokens & Tokenization]].
+Streaming = decode. Cache-hit counters = KV / prompt caching. Money from those counts: [[04 - Tokens & Tokenization]].
 
 ---
 
@@ -223,9 +223,9 @@ Not a tool you "choose" — it is the base of every LLM. Knowing it helps you de
 
 - **Decode is the slow part** — output is sequential.
 - **Longer input → more compute** — every token compared with every other.
-- **API is usually stateless** — resend history every call; manage the window yourself ([[04 - Context Window]]).
+- **API is usually stateless** — resend history every call; manage the window yourself ([[05 - Context Window]]).
 - **Caching trades compute for memory.**
-- **Billing math:** [[03 - Tokens & Tokenization]].
+- **Billing math:** [[04 - Tokens & Tokenization]].
 
 ---
 
@@ -243,11 +243,12 @@ Not a tool you "choose" — it is the base of every LLM. Knowing it helps you de
 
 ## Related topics
 
-- [[02 - Messages, Roles & the Chat API]]
-- [[03 - Tokens & Tokenization]]
-- [[04 - Context Window]]
-- [[05 - Embeddings]]
-- [[07 - Determinism & Sampling]]
+- [[02 - Transformers, Explained in Order]]
+- [[03 - Messages, Roles & the Chat API]]
+- [[04 - Tokens & Tokenization]]
+- [[05 - Context Window]]
+- [[06 - Embeddings]]
+- [[08 - Determinism & Sampling]]
 - [[06 - Prompt Caching]]
 - [[01 - Why RAG Exists]]
 - [[04 - Streaming Architecture]]

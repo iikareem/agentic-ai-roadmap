@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 03
+topic: 04
 tags:
   - agentic-ai
   - ch/01
 ---
-# 03 - Tokens & Tokenization
+# 04 - Tokens & Tokenization
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 03 - Tokens & Tokenization  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 04 - Tokens & Tokenization  
 > **Type:** Concept  
-> **Prev:** [[02 - Messages, Roles & the Chat API]] | **Next:** [[04 - Context Window]]
+> **Prev:** [[03 - Messages, Roles & the Chat API]] | **Next:** [[05 - Context Window]]
 
 ---
 
@@ -24,7 +24,7 @@ The model never sees raw text. A **tokenizer** splits text into **tokens** and m
 
 - **Cost** — billed per token; output usually costs more than input.
 - **Latency** — output is generated one token at a time ([[01 - How LLMs Work]]).
-- **Limits** — [[04 - Context Window]] and tokens-per-minute caps are token budgets.
+- **Limits** — [[05 - Context Window]] and tokens-per-minute caps are token budgets.
 
 If you budget in characters or words, estimates will be wrong.
 
@@ -122,7 +122,7 @@ per request / user / feature
 ## Cost, latency, or risk notes
 
 - Output tokens cost more **and** are slower.
-- Context window and TPM/RPM are hard budgets — plan truncation / summarization / retrieval before you hit them ([[04 - Context Window]]).
+- Context window and TPM/RPM are hard budgets — plan truncation / summarization / retrieval before you hit them ([[05 - Context Window]]).
 - Log usage from day one; cache repeated prefixes.
 
 ---
@@ -140,8 +140,8 @@ per request / user / feature
 ## Related topics
 
 - [[01 - How LLMs Work]]
-- [[04 - Context Window]]
-- [[05 - Embeddings]]
+- [[05 - Context Window]]
+- [[06 - Embeddings]]
 - [[06 - Prompt Caching]]
 - [[01 - Why RAG Exists]]
 

@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 02
+topic: 03
 tags:
   - agentic-ai
   - ch/01
 ---
-# 02 - Messages, Roles & the Chat API
+# 03 - Messages, Roles & the Chat API
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 02 - Messages, Roles & the Chat API  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 03 - Messages, Roles & the Chat API  
 > **Type:** Concept  
-> **Prev:** [[01 - How LLMs Work]] | **Next:** [[03 - Tokens & Tokenization]]
+> **Prev:** [[02 - Transformers, Explained in Order]] | **Next:** [[04 - Tokens & Tokenization]]
 
 ---
 
@@ -72,7 +72,7 @@ Consequences:
 
 - A long conversation can dilute early instructions — repeat critical rules near the end if it matters.
 - A retrieved document or tool result containing *"ignore previous instructions"* is read as text with real influence. Never treat content as trusted because of the role it arrived in.
-- Authorization belongs in your code and inside your tools, not in a sentence in the system prompt ([[04 - Context Window]]).
+- Authorization belongs in your code and inside your tools, not in a sentence in the system prompt ([[05 - Context Window]]).
 
 ### 4. Where generation stops
 
@@ -89,7 +89,7 @@ Four ways a response ends:
 
 ### 5. The request is stateless
 
-Each call is independent. "Memory" is just you resending the accumulated message list, which is why input grows every turn in an agent loop. What to keep, drop, or summarize is [[04 - Context Window]]; what it costs is [[03 - Tokens & Tokenization]].
+Each call is independent. "Memory" is just you resending the accumulated message list, which is why input grows every turn in an agent loop. What to keep, drop, or summarize is [[05 - Context Window]]; what it costs is [[04 - Tokens & Tokenization]].
 
 ---
 
@@ -149,9 +149,9 @@ if finish_reason == "stop":      parse / return
 ## Related topics
 
 - [[01 - How LLMs Work]]
-- [[03 - Tokens & Tokenization]]
-- [[04 - Context Window]]
-- [[08 - Structured Output]]
+- [[04 - Tokens & Tokenization]]
+- [[05 - Context Window]]
+- [[09 - Structured Output]]
 - [[01 - System Prompt Design]]
 - [[04 - Tool Use & Function Calling]]
 

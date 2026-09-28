@@ -1,17 +1,17 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 10
+topic: 11
 tags:
   - agentic-ai
   - ch/01
   - recap
 ---
-# 10 - Chapter Recap
+# 11 - Chapter Recap
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 10 - Chapter Recap  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 11 - Chapter Recap  
 > **Type:** Hub  
-> **Prev:** [[09 - Multi-modality]] | **Next:** [[Prompt Engineering]]
+> **Prev:** [[10 - Multi-modality]] | **Next:** [[Prompt Engineering]]
 
 ---
 
@@ -71,7 +71,7 @@ So Part 1 causes four things in the rest of the chapter. Output is a guess. Long
 
 ## Part 2 — The API, which is a trick built on flattening
 
-[[02 - Messages, Roles & the Chat API]] is where the machine meets an API. And the API tells you a small lie: that you are sending a chat between named people.
+[[03 - Messages, Roles & the Chat API]] is where the machine meets an API. And the API tells you a small lie: that you are sending a chat between named people.
 
 You send a list. `system` for standing rules. `user` for the request. `assistant` for the model's own past replies. `tool` for results your code sent back. Then a **chat template** flattens all of it into the one flat list from Part 1, using **special tokens** as markers:
 
@@ -103,7 +103,7 @@ See how this stacks with Part 1's rule about the start of the prompt. Keep the s
 
 ## Part 3 — Not enough room, and a budget you did not know you owned
 
-Stateless calls plus a fixed sequence length gives you [[04 - Context Window]]. The first thing to get straight: it is **input and output sharing one hard budget**. Leave room for the reply or the reply gets cut off. Which shows up back in Part 2 as `finish_reason: length`.
+Stateless calls plus a fixed sequence length gives you [[05 - Context Window]]. The first thing to get straight: it is **input and output sharing one hard budget**. Leave room for the reply or the reply gets cut off. Which shows up back in Part 2 as `finish_reason: length`.
 
 Everything fights for that budget. System prompt. Tool definitions. Chat history. Tool results. Retrieved chunks. And the output itself.
 
@@ -117,7 +117,7 @@ And notice the clash with Part 1: summarizing rewrites the start of your history
 
 Then there is the quality trap, which people learn last. Even when everything *fits*, filling the window is not free. Cost and speed get worse on every call. And because attention shares out 100%, details get watered down and middles get skipped. "It fits" is not the test. **"It is relevant"** is the test.
 
-**This is exactly the problem [[05 - Embeddings]] solves.** If you cannot send everything, you need to send only the parts that matter. You cannot find those with `LIKE '%car%'`, because "automobile" will not match. And you cannot ask the chat model to go look, because searching millions of documents is the one thing it cannot do.
+**This is exactly the problem [[06 - Embeddings]] solves.** If you cannot send everything, you need to send only the parts that matter. You cannot find those with `LIKE '%car%'`, because "automobile" will not match. And you cannot ask the chat model to go look, because searching millions of documents is the one thing it cannot do.
 
 So an embedding model turns text into a fixed-length list of numbers, where similar *meaning* lands close together. That turns "search by meaning" into simple math on those numbers.
 
@@ -135,7 +135,7 @@ So store the model name and version next to your vectors, and re-embed everythin
 
 ## Part 4 — Picking which machine runs the request
 
-By now the request is built and trimmed. [[06 - Model Families & Tradeoffs]] asks which model should get it. Every choice here is just a new price tag on something you already know.
+By now the request is built and trimmed. [[07 - Model Families & Tradeoffs]] asks which model should get it. Every choice here is just a new price tag on something you already know.
 
 **Reasoning vs fast** is the clearest one. A reasoning model is not a different design. It is the same transformer writing a scratchpad of steps first, then answering with that scratchpad in its context. So those thinking tokens are written one at a time, are billed as output, and are slow for the exact reason Part 1 gave. "Better answers on multi-step problems" is real, and it shows up on the bill.
 
@@ -151,7 +151,7 @@ And the frame to keep: speed, cost, and quality are three corners, and you get t
 
 ## Part 5 — Getting one token out, and getting a shape you can use
 
-The tokens are in and the model is picked. Now the last layer gives a **logit** (a score) to every token in the vocabulary, and those scores become chances that add up to 1. [[07 - Determinism & Sampling]] is about the fact that something now has to *pick one*.
+The tokens are in and the model is picked. Now the last layer gives a **logit** (a score) to every token in the vocabulary, and those scores become chances that add up to 1. [[08 - Determinism & Sampling]] is about the fact that something now has to *pick one*.
 
 The key idea: sampling settings act **after** the model has done its thinking. They do not change what it knows or what it predicted. They only change how one token gets pulled out of the list of chances it made.
 
@@ -161,7 +161,7 @@ Then the detail that should change your code: **temperature 0 is not a promise.*
 
 So low temperature is a way to make your validation pass more often. It is never a replacement for validating.
 
-**This is exactly why [[08 - Structured Output]] cannot work by asking nicely.** If the next token is pulled from a list of chances, then "please reply in JSON only" is a nudge on those chances, not a rule. And a nudge fails on a schedule. That is how you get one broken parse every fifty calls.
+**This is exactly why [[09 - Structured Output]] cannot work by asking nicely.** If the next token is pulled from a list of chances, then "please reply in JSON only" is a nudge on those chances, not a rule. And a nudge fails on a schedule. That is how you get one broken parse every fifty calls.
 
 The three approaches are really three depths of control:
 
@@ -179,7 +179,7 @@ Which is why the dangerous failure in agents is not a crash. A tool argument tha
 
 ## Part 6 — Making the pipe wider
 
-[[09 - Multi-modality]] adds more input and output types without changing anything above. Images become patches. Audio becomes a sequence of representations. Both end up as **a list of numbers the transformer can process** — the same thing text tokens end up as. That is why nothing in Parts 1 to 5 needs rewriting.
+[[10 - Multi-modality]] adds more input and output types without changing anything above. Images become patches. Audio becomes a sequence of representations. Both end up as **a list of numbers the transformer can process** — the same thing text tokens end up as. That is why nothing in Parts 1 to 5 needs rewriting.
 
 The line to hold clearly is **input type vs output type**. They are separate choices, and support is uneven. Plenty of models read images well and can still only reply in text. Really generating images or audio is usually a different, specialized model.
 
@@ -193,14 +193,14 @@ The Part 3 budget still applies, at a worse rate. An image or audio clip eats fa
 
 Every topic shows up in a single turn of an agent. Follow one:
 
-1. Your code loads the chat from your own database, because the model kept nothing — **[[04 - Context Window]]**, **[[02 - Messages, Roles & the Chat API]]**.
-2. It embeds the user's question, searches the vector index, and pulls the three most relevant chunks instead of the whole set — **[[05 - Embeddings]]**.
-3. It builds the list with stable content first — system prompt, tool schemas — so the cached part survives, then history, then the chunks and the new message — **[[02 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
-4. A router decides this one needs the reasoning tier, and the budget is checked with *that* model's tokenizer — **[[06 - Model Families & Tradeoffs]]**, **[[03 - Tokens & Tokenization]]**.
-5. The template flattens it all into one list ending on an open assistant marker. Prefill builds the KV cache. Time-to-first-token passes — **[[02 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
-6. Decode runs, picking one token per step from a list of chances that was cut down to fit the tool schema — **[[07 - Determinism & Sampling]]**, **[[08 - Structured Output]]**.
-7. It comes back as `finish_reason: tool_calls`. So your code checks the arguments, runs the tool, cuts the result down so it cannot eat the window, and adds it to the list — **[[02 - Messages, Roles & the Chat API]]**, **[[04 - Context Window]]**.
-8. Go back to step 1. The list is longer now, the input bill is higher, and you are closer to needing to summarize — **[[03 - Tokens & Tokenization]]**, **[[04 - Context Window]]**.
+1. Your code loads the chat from your own database, because the model kept nothing — **[[05 - Context Window]]**, **[[03 - Messages, Roles & the Chat API]]**.
+2. It embeds the user's question, searches the vector index, and pulls the three most relevant chunks instead of the whole set — **[[06 - Embeddings]]**.
+3. It builds the list with stable content first — system prompt, tool schemas — so the cached part survives, then history, then the chunks and the new message — **[[03 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
+4. A router decides this one needs the reasoning tier, and the budget is checked with *that* model's tokenizer — **[[07 - Model Families & Tradeoffs]]**, **[[04 - Tokens & Tokenization]]**.
+5. The template flattens it all into one list ending on an open assistant marker. Prefill builds the KV cache. Time-to-first-token passes — **[[03 - Messages, Roles & the Chat API]]**, **[[01 - How LLMs Work]]**.
+6. Decode runs, picking one token per step from a list of chances that was cut down to fit the tool schema — **[[08 - Determinism & Sampling]]**, **[[09 - Structured Output]]**.
+7. It comes back as `finish_reason: tool_calls`. So your code checks the arguments, runs the tool, cuts the result down so it cannot eat the window, and adds it to the list — **[[03 - Messages, Roles & the Chat API]]**, **[[05 - Context Window]]**.
+8. Go back to step 1. The list is longer now, the input bill is higher, and you are closer to needing to summarize — **[[04 - Tokens & Tokenization]]**, **[[05 - Context Window]]**.
 
 That loop is the whole chapter. Everything after this chapter just improves one of those eight steps.
 
@@ -223,14 +223,15 @@ That loop is the whole chapter. Everything after this chapter just improves one 
 | # | Topic | If you remember one thing |
 |---|-------|---------------------------|
 | 01 | [[01 - How LLMs Work]] | Frozen weights guessing one token at a time. Prefill is parallel, decode is not, old K/V can be cached. |
-| 02 | [[02 - Messages, Roles & the Chat API]] | The list is flattened into one string ending on an open assistant tag. Check the finish reason before parsing. |
-| 03 | [[03 - Tokens & Tokenization]] | Count with that model's tokenizer. Output costs more than input, then gets re-sent as input next turn. |
-| 04 | [[04 - Context Window]] | Input and output share one hard budget, and managing it is your code's job. |
-| 05 | [[05 - Embeddings]] | One embedding model for documents and queries, always. A mismatch fails quietly, not loudly. |
-| 06 | [[06 - Model Families & Tradeoffs]] | Route each request. A model that is too small fails quietly, which is worse than failing expensively. |
-| 07 | [[07 - Determinism & Sampling]] | Sampling acts after the model thinks. Temperature 0 lowers variety without promising it. |
-| 08 | [[08 - Structured Output]] | Cut down the choices while it writes, then validate anyway. Tool calling is just this. |
-| 09 | [[09 - Multi-modality]] | Everything turns into a list of numbers. Input types and output types are separate choices. |
+| 02 | [[02 - Transformers, Explained in Order]] | One forward pass ends in probabilities; generation is a loop around that, sped up by the KV cache. |
+| 03 | [[03 - Messages, Roles & the Chat API]] | The list is flattened into one string ending on an open assistant tag. Check the finish reason before parsing. |
+| 04 | [[04 - Tokens & Tokenization]] | Count with that model's tokenizer. Output costs more than input, then gets re-sent as input next turn. |
+| 05 | [[05 - Context Window]] | Input and output share one hard budget, and managing it is your code's job. |
+| 06 | [[06 - Embeddings]] | One embedding model for documents and queries, always. A mismatch fails quietly, not loudly. |
+| 07 | [[07 - Model Families & Tradeoffs]] | Route each request. A model that is too small fails quietly, which is worse than failing expensively. |
+| 08 | [[08 - Determinism & Sampling]] | Sampling acts after the model thinks. Temperature 0 lowers variety without promising it. |
+| 09 | [[09 - Structured Output]] | Cut down the choices while it writes, then validate anyway. Tool calling is just this. |
+| 10 | [[10 - Multi-modality]] | Everything turns into a list of numbers. Input types and output types are separate choices. |
 
 ---
 

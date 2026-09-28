@@ -1,16 +1,16 @@
 ---
 status: not-started
 chapter: LLM Foundations
-topic: 04
+topic: 05
 tags:
   - agentic-ai
   - ch/01
 ---
-# 04 - Context Window
+# 05 - Context Window
 
-> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 04 - Context Window  
+> **Navigation:** [[Agentic AI Roadmap]] → [[LLM Foundations]] → 05 - Context Window  
 > **Type:** Concept  
-> **Prev:** [[03 - Tokens & Tokenization]] | **Next:** [[05 - Embeddings]]
+> **Prev:** [[04 - Tokens & Tokenization]] | **Next:** [[06 - Embeddings]]
 
 ---
 
@@ -99,8 +99,8 @@ Window: 200k tokens (illustrative)
 
 ## Related topics
 
-- [[03 - Tokens & Tokenization]]
-- [[05 - Embeddings]]
+- [[04 - Tokens & Tokenization]]
+- [[06 - Embeddings]]
 
 ## Resources
 

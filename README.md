@@ -94,8 +94,9 @@ agentic-ai-roadmap/
 ├── 01 - LLM Foundations/
 │   ├── LLM Foundations.md       # chapter hub
 │   ├── 01 - How LLMs Work.md
-│   ├── 02 - Messages, Roles & the Chat API.md
-│   ├── 03 - Tokens & Tokenization.md
+│   ├── 02 - Transformers, Explained in Order.md
+│   ├── 03 - Messages, Roles & the Chat API.md
+│   ├── 04 - Tokens & Tokenization.md
 │   └── ...
 ├── 02 - Prompt Engineering/
 ├── 03 - RAG/
